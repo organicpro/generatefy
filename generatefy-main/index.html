@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generatefy - AI Sales Automation Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" crossorigin="anonymous">
+    <script>
+        // Fix for "Cannot set property fetch of #<Window> which has only a getter"
+        (function() {
+            try {
+                const originalFetch = window.fetch;
+                const desc = Object.getOwnPropertyDescriptor(window, 'fetch');
+                
+                // Se já for um getter e não puder ser alterado, não fazemos nada.
+                // Mas se pudermos redefinir, vamos colocar um setter vazio para evitar o TypeError.
+                if (!desc || desc.configurable) {
+                    Object.defineProperty(window, 'fetch', {
+                        get: function() { return originalFetch; },
+                        set: function(v) { 
+                            console.warn('Uma biblioteca tentou sobrescrever window.fetch. Operação bloqueada para evitar erro fatal.');
+                        },
+                        configurable: true,
+                        enumerable: true
+                    });
+                }
+            } catch (e) {
+                console.warn('Fetch fix failed:', e);
+            }
+        })();
+    </script>
+</head>
+<body class="bg-[#07090e] text-white">
+    <div id="root">
+        <div style="display: flex; height: 100vh; align-items: center; justify-content: center; background: #07090e; color: #a855f7; font-family: sans-serif; text-transform: uppercase; letter-spacing: 0.2em; font-size: 10px;">
+            Iniciando Generatefy Engine...
+        </div>
+    </div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

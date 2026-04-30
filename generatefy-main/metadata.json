@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Generatefy",
+  "description": "Plataforma Inteligente de Geração de Funis de Vendas e Automação Engine",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
