@@ -498,7 +498,6 @@ export function createEmbeddedRyzeSend() {
         headless: process.env.WHATSAPP_HEADLESS !== "false",
         executablePath: browserWSEndpoint ? undefined : executablePath,
         browserWSEndpoint,
-        userDataDir: browserWSEndpoint ? undefined : CHROME_PROFILE_DIR,
         args: [
           "--no-sandbox",
           "--disable-setuid-sandbox",
