@@ -1,0 +1,8 @@
+.git
+Ryzesend
+generatefy-main/node_modules
+generatefy-main/data
+generatefy-main/dist
+generatefy-main/.server-dist
+generatefy-main/*.log
+generatefy-main/.env
