@@ -128,7 +128,7 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                 type="text" 
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="Ex: Ryze Agency"
+                placeholder="Ex: Generatefy Agency"
                 className="w-full bg-black/40 border border-white/[0.03] rounded-2xl px-6 py-4 text-sm text-white focus:border-primary/40 focus:ring-1 focus:ring-primary/20 outline-none transition-all font-semibold placeholder:text-zinc-800"
               />
             </div>

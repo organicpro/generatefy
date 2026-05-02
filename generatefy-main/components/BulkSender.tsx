@@ -152,9 +152,9 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
   const loadEngineState = async (silent = false) => {
     try {
       const [status, profileData, historyData] = await Promise.all([
-        apiFetch<EngineStatus>('/api/ryzesend/status'),
-        apiFetch<Partial<ProfileData>>('/api/ryzesend/profile'),
-        apiFetch<DispatchHistoryItem[]>('/api/ryzesend/dispatches'),
+        apiFetch<EngineStatus>('/api/whatsapp-engine/status'),
+        apiFetch<Partial<ProfileData>>('/api/whatsapp-engine/profile'),
+        apiFetch<DispatchHistoryItem[]>('/api/whatsapp-engine/dispatches'),
       ]);
 
       setEngineStatus(status);
@@ -207,11 +207,11 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch('/api/ryzesend-admin/start', { method: 'POST' });
+      await apiFetch('/api/whatsapp-engine-admin/start', { method: 'POST' });
       await loadEngineState();
-      setSuccess('Motor RyzeSend inicializado com sucesso.');
+      setSuccess('Motor WhatsApp inicializado com sucesso.');
     } catch (err: any) {
-      setError(err.message || 'Nao foi possivel iniciar o RyzeSend.');
+      setError(err.message || 'Nao foi possivel iniciar o motor WhatsApp.');
     } finally {
       setIsBooting(false);
     }
@@ -222,7 +222,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch('/api/ryzesend/profile', {
+      await apiFetch('/api/whatsapp-engine/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile),
@@ -240,7 +240,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch(`/api/ryzesend/connect${fresh ? '?fresh=1' : ''}`, {
+      await apiFetch(`/api/whatsapp-engine/connect${fresh ? '?fresh=1' : ''}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fresh }),
@@ -259,7 +259,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch('/api/ryzesend/disconnect', {
+      await apiFetch('/api/whatsapp-engine/disconnect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -294,7 +294,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     let uploadedFilename = '';
 
     try {
-      await apiFetch('/api/ryzesend/profile', {
+      await apiFetch('/api/whatsapp-engine/profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile),
@@ -303,14 +303,14 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
       if (selectedFile) {
         const formData = new FormData();
         formData.append('media', selectedFile);
-        const uploadResponse = await apiFetch<{ filename: string }>('/api/ryzesend/upload', {
+        const uploadResponse = await apiFetch<{ filename: string }>('/api/whatsapp-engine/upload', {
           method: 'POST',
           body: formData,
         });
         uploadedFilename = uploadResponse.filename;
       }
 
-      await apiFetch('/api/ryzesend/dispatch', {
+      await apiFetch('/api/whatsapp-engine/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -322,13 +322,13 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
         }),
       });
 
-      setSuccess('Disparo iniciado. A etapa final agora esta operando com o motor real do RyzeSend.');
+      setSuccess('Disparo iniciado. A etapa final agora esta operando com o motor real de WhatsApp.');
       setSelectedFile(null);
       await loadEngineState();
     } catch (err: any) {
       if (uploadedFilename) {
         try {
-          await apiFetch('/api/ryzesend/upload', {
+          await apiFetch('/api/whatsapp-engine/upload', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ filename: uploadedFilename }),
@@ -348,7 +348,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch('/api/ryzesend/dispatch/abort', {
+      await apiFetch('/api/whatsapp-engine/dispatch/abort', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -367,9 +367,9 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
     setError('');
     setSuccess('');
     try {
-      await apiFetch('/api/ryzesend/dispatches', { method: 'DELETE' });
+      await apiFetch('/api/whatsapp-engine/dispatches', { method: 'DELETE' });
       setDispatchHistory([]);
-      setSuccess('Historico do RyzeSend limpo com sucesso.');
+      setSuccess('Historico do motor de disparo limpo com sucesso.');
     } catch (err: any) {
       setError(err.message || 'Nao foi possivel limpar o historico.');
     } finally {
@@ -392,13 +392,13 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
         <header className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-widest uppercase">
             <Send className="w-3.5 h-3.5" />
-            Fase Final: RyzeSend Operacional
+            Fase Final: Motor WhatsApp Operacional
           </div>
           <h1 className="text-4xl md:text-5xl font-black text-white leading-tight">
             Disparo real com <span className="text-primary italic">WhatsApp Engine.</span>
           </h1>
           <p className="text-neutral-500 max-w-3xl text-sm font-medium">
-            A Generatefy agora fecha o funil direto no RyzeSend. Aqui você conecta o WhatsApp, salva o perfil do operador,
+            A Generatefy agora fecha o funil direto no motor de disparo. Aqui você conecta o WhatsApp, salva o perfil do operador,
             sobe mídia, envia para a lista final e acompanha a execução em tempo real.
           </p>
         </header>
@@ -420,7 +420,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p>O motor de WhatsApp reportou: <span className="font-black">{engineStatus.error}</span></p>
-              <p className="text-xs text-amber-200/80">O QR code aparece neste mesmo painel, logo abaixo do bloco “Orquestrador do RyzeSend”, assim que o status mudar para <span className="font-black">QR aguardando leitura</span>.</p>
+              <p className="text-xs text-amber-200/80">O QR code aparece neste mesmo painel, logo abaixo do bloco “Motor de Disparo WhatsApp”, assim que o status mudar para <span className="font-black">QR aguardando leitura</span>.</p>
             </div>
           </div>
         )}
@@ -441,7 +441,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
                           : 'Motor offline'}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-white">Orquestrador do RyzeSend</h2>
+                    <h2 className="text-2xl font-black text-white">Motor de Disparo WhatsApp</h2>
                     <p className="text-xs text-neutral-500 font-medium mt-1">
                       Projeto em campanha: <span className="text-primary">{campaignName}</span>
                     </p>
@@ -488,7 +488,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-4 space-y-2">
                   <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest">Motor</p>
                   <p className="text-lg font-black text-white">{engineStatus?.status || 'aguardando'}</p>
-                  <p className="text-[10px] text-neutral-500">Bridge local em `/api/ryzesend/*`.</p>
+                  <p className="text-[10px] text-neutral-500">Conexao interna ativa para o motor de disparo.</p>
                 </div>
                 <div className="rounded-2xl border border-white/5 bg-white/[0.03] p-4 space-y-2">
                   <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest">Fila ativa</p>

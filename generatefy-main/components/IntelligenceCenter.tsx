@@ -33,7 +33,7 @@ export default function IntelligenceCenter({ currentProjectDesc, identity }: Int
         
         REGRAS IMPORTANTES:
         - Os textos são para o cliente final do negócio descrito.
-        - Nunca mencione "Ryze" ou "Ryze Builder". Refira-se a si mesmo como Generatefy Engine.
+        - Nunca mencione marcas legadas da base do projeto. Refira-se a si mesmo como Generatefy Engine.
         - Foque na conversão e nos benefícios reais do produto/serviço.
 
         Formato JSON obrigatório com os seguintes campos:

@@ -187,7 +187,7 @@ const upload = multer({
   },
 });
 
-export function createEmbeddedRyzeSend() {
+export function createEmbeddedWhatsAppEngine() {
   const router = express.Router();
 
   let waClient: WhatsAppClient | null = null;
@@ -275,7 +275,7 @@ export function createEmbeddedRyzeSend() {
     waLastError = rawMessage.includes("spawn EPERM")
       ? "Este ambiente bloqueou a abertura automatica do Chrome para o WhatsApp. O servidor esta ok, mas o QR nao pode ser gerado aqui ate liberar a execucao do navegador."
       : rawMessage;
-    console.error("[RyzeSend:Embedded]", waLastError);
+    console.error("[WhatsAppEngine]", waLastError);
   }
 
   function isRecoverableBrowserError(error: unknown) {
@@ -486,9 +486,9 @@ export function createEmbeddedRyzeSend() {
     let browserWSEndpoint: string | undefined;
 
     if (executablePath) {
-      console.log(`[RyzeSend:Embedded] Browser engine: ${executablePath}`);
+      console.log(`[WhatsAppEngine] Browser engine: ${executablePath}`);
     } else {
-      console.warn("[RyzeSend:Embedded] Chrome/Edge nao detectado explicitamente. Usando resolucao padrao do Puppeteer.");
+      console.warn("[WhatsAppEngine] Chrome/Edge nao detectado explicitamente. Usando resolucao padrao do Puppeteer.");
     }
 
     try {
@@ -587,7 +587,7 @@ export function createEmbeddedRyzeSend() {
 
     waClient.on("disconnected", async (reason: string) => {
       if (isRecoverableBrowserError(reason)) {
-        console.warn("[RyzeSend:Embedded] Sessao do navegador foi reciclada; tentando reconectar o WhatsApp.");
+        console.warn("[WhatsAppEngine] Sessao do navegador foi reciclada; tentando reconectar o WhatsApp.");
         await scheduleReconnect(reason);
         return;
       }
@@ -604,7 +604,7 @@ export function createEmbeddedRyzeSend() {
       .catch(async (error: unknown) => {
         if (isRecoverableBrowserError(error) && navigationRetryCount < 2) {
           navigationRetryCount += 1;
-          console.warn(`[RyzeSend:Embedded] Retry de navegacao do WhatsApp Web ${navigationRetryCount}/2`);
+          console.warn(`[WhatsAppEngine] Retry de navegacao do WhatsApp Web ${navigationRetryCount}/2`);
           await scheduleReconnect(error, { fresh });
           return;
         }
@@ -788,7 +788,7 @@ export function createEmbeddedRyzeSend() {
       }
     } catch (error) {
       if (isPostSendSerializationError(error)) {
-        console.warn("[RyzeSend:Embedded] Mensagem enviada, mas o retorno do WhatsApp Web nao pode ser serializado.");
+        console.warn("[WhatsAppEngine] Mensagem enviada, mas o retorno do WhatsApp Web nao pode ser serializado.");
         return;
       }
 
@@ -908,7 +908,7 @@ export function createEmbeddedRyzeSend() {
 
     upsertDispatchHistory(dispatch);
 
-    console.log(`[RyzeSend:Embedded] Dispatch ${dispatchId} finalizado com status ${dispatch.status}.`);
+    console.log(`[WhatsAppEngine] Dispatch ${dispatchId} finalizado com status ${dispatch.status}.`);
   }
 
   router.get("/status", async (_req, res) => {

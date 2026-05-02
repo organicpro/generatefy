@@ -421,7 +421,7 @@ export const TEMPLATES: Template[] = [
         </div>
         <div class="max-w-7xl mx-auto pt-10 border-t border-sage/10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">© 2026 Dra. Helena Mendes. Todos os direitos reservados.</div>
-            <div class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Design by Ryze Studio</div>
+            <div class="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Design by Generatefy Studio</div>
         </div>
     </footer>
 </body>
@@ -746,7 +746,7 @@ export const TEMPLATES: Template[] = [
         </div>
         <div class="max-w-7xl mx-auto pt-10 border-t border-stone-200 flex justify-between items-center text-[10px] font-bold text-stone-400 uppercase tracking-widest">
             <div>© 2026 Vibrant Health.</div>
-            <div>Powered by Ryze Studio</div>
+            <div>Powered by Generatefy Studio</div>
         </div>
     </footer>
 </body>
@@ -1063,7 +1063,7 @@ export const TEMPLATES: Template[] = [
         </div>
         <div class="max-w-7xl mx-auto pt-10 border-t border-white/5 flex justify-between items-center text-[8px] font-bold uppercase tracking-[0.4em] text-white/20">
             <div>© 2026 The Gentleman.</div>
-            <div>Crafted by Ryze Studio</div>
+            <div>Crafted by Generatefy Studio</div>
         </div>
     </footer>
 </body>
@@ -1347,7 +1347,7 @@ export const TEMPLATES: Template[] = [
             </div>
             <div class="pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-[8px] uppercase font-bold tracking-[0.5em] text-white/20">
                 <div>© 2026 Mendes & Associados. Todos os direitos reservados.</div>
-                <div>Design by Ryze Studio</div>
+                <div>Design by Generatefy Studio</div>
             </div>
         </div>
     </footer>
@@ -2146,7 +2146,7 @@ export const TEMPLATES: Template[] = [
             <a href="#" class="hover:text-white transition-colors">YouTube</a>
             <a href="#" class="hover:text-white transition-colors">WhatsApp</a>
         </div>
-        <div class="text-[8px] uppercase tracking-[0.5em] text-white/20">© 2026 Elite Performance. Design by Ryze Studio</div>
+        <div class="text-[8px] uppercase tracking-[0.5em] text-white/20">© 2026 Elite Performance. Design by Generatefy Studio</div>
     </footer>
 </body>
 </html>
@@ -2283,7 +2283,7 @@ export const TEMPLATES: Template[] = [
     <footer class="py-20 px-8 border-t border-stone-100 text-center">
         <div class="text-2xl font-extrabold tracking-tighter text-blue-premium mb-8">ODONTO<span class="text-stone-900">PREMIUM</span></div>
         <p class="text-stone-400 text-sm mb-12">Av. das Nações, 5000 - Edifício Corporate, Sala 1201 - SP</p>
-        <div class="text-[10px] uppercase tracking-[0.5em] text-stone-300">© 2026 Odonto Premium. Design by Ryze Studio</div>
+        <div class="text-[10px] uppercase tracking-[0.5em] text-stone-300">© 2026 Odonto Premium. Design by Generatefy Studio</div>
     </footer>
 </body>
 </html>
@@ -2400,7 +2400,7 @@ export const TEMPLATES: Template[] = [
 
     <footer class="py-20 px-12 border-t border-black/5 flex flex-col md:flex-row justify-between items-center gap-12">
         <div class="serif text-2xl font-bold">STUDIO<span class="italic font-normal">MINIMAL</span></div>
-        <div class="text-[10px] uppercase tracking-[0.5em] opacity-20">© 2026 Studio Minimal. Crafted by Ryze Studio</div>
+        <div class="text-[10px] uppercase tracking-[0.5em] opacity-20">© 2026 Studio Minimal. Crafted by Generatefy Studio</div>
         <div class="flex gap-8 text-[10px] uppercase font-bold tracking-widest">
             <a href="#" class="hover:opacity-50 transition-opacity">Instagram</a>
             <a href="#" class="hover:opacity-50 transition-opacity">Behance</a>
@@ -2569,7 +2569,7 @@ export const TEMPLATES: Template[] = [
     <footer class="py-20 px-8 border-t border-zen text-center">
         <div class="serif text-4xl italic text-zen mb-8">Zen Flow</div>
         <p class="text-sm opacity-50 mb-12">Rua da Calma, 108 - Vila Madalena, SP</p>
-        <div class="text-[10px] uppercase tracking-[0.5em] opacity-30">© 2026 Zen Flow. Design by Ryze Studio</div>
+        <div class="text-[10px] uppercase tracking-[0.5em] opacity-30">© 2026 Zen Flow. Design by Generatefy Studio</div>
     </footer>
 </body>
 </html>
@@ -2765,7 +2765,7 @@ export const TEMPLATES: Template[] = [
             <a href="#" class="hover:text-rose transition-colors">Facebook</a>
             <a href="#" class="hover:text-rose transition-colors">WhatsApp</a>
         </div>
-        <div class="text-[8px] uppercase tracking-[0.5em] text-white/20">© 2026 Lumière Studio. Crafted by Ryze Studio</div>
+        <div class="text-[8px] uppercase tracking-[0.5em] text-white/20">© 2026 Lumière Studio. Crafted by Generatefy Studio</div>
     </footer>
 </body>
 </html>
@@ -3009,7 +3009,7 @@ export const TEMPLATES: Template[] = [
     <footer id="contato" class="py-20 px-8 bg-slate-900 text-white text-center">
         <div class="display text-4xl font-bold text-orange mb-8">PAWS<span class="text-white">&CO</span></div>
         <p class="text-slate-400 mb-12">Rua das Patas, 456 - Pinheiros, São Paulo - SP</p>
-        <div class="text-[10px] uppercase tracking-[0.5em] text-white/20">© 2026 Paws & Co. Design by Ryze Studio</div>
+        <div class="text-[10px] uppercase tracking-[0.5em] text-white/20">© 2026 Paws & Co. Design by Generatefy Studio</div>
     </footer>
 </body>
 </html>
@@ -4562,11 +4562,11 @@ export const TEMPLATES: Template[] = [
     `
   },
   {
-    id: 'ryze-academy-elite',
-    name: 'Ryze Creator Academy',
+    id: 'creator-academy-elite',
+    name: 'Creator Academy',
     category: 'Educação',
     featured: true,
-    description: 'Plataforma de ensino premium com design dark, módulos estruturados e estética high-end da Ryze.',
+    description: 'Plataforma de ensino premium com design dark, módulos estruturados e estética high-end.',
     thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=800',
     html: `
 <!DOCTYPE html>
@@ -4603,7 +4603,7 @@ export const TEMPLATES: Template[] = [
                 <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(0,255,255,0.4)]">
                     <svg viewBox="0 0 24 24" class="w-5 h-5 text-black fill-current"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>
                 </div>
-                <span class="font-black text-xl tracking-tighter uppercase">Ryze<span class="text-primary">Academy</span></span>
+                <span class="font-black text-xl tracking-tighter uppercase">Creator<span class="text-primary">Academy</span></span>
             </div>
             <nav class="hidden md:flex gap-8 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400">
                 <a href="#modulos" class="hover:text-primary transition-colors">Módulos</a>
@@ -4768,10 +4768,10 @@ export const TEMPLATES: Template[] = [
                 <div class="w-6 h-6 bg-primary rounded flex items-center justify-center">
                     <svg viewBox="0 0 24 24" class="w-4 h-4 text-black fill-current"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>
                 </div>
-                <span class="font-black text-sm tracking-tighter uppercase">Ryze<span class="text-primary">Academy</span></span>
+                <span class="font-black text-sm tracking-tighter uppercase">Creator<span class="text-primary">Academy</span></span>
             </div>
             <div class="text-[10px] font-bold text-neutral-600 uppercase tracking-[0.4em]">
-                © 2026 Ryze Studio. Todos os direitos reservados.
+                © 2026 Generatefy Studio. Todos os direitos reservados.
             </div>
             <div class="flex gap-6">
                 <a href="#" class="text-neutral-500 hover:text-primary transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>

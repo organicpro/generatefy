@@ -939,7 +939,7 @@ const PreviewArea: React.FC<PreviewAreaProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'ryze-site.html';
+    a.download = 'generatefy-site.html';
     a.click();
     URL.revokeObjectURL(url);
   };

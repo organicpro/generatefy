@@ -4,7 +4,7 @@ import { createServer as createViteServer } from "vite";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import path from "path";
 import { ServerResponse } from "http";
-import { createEmbeddedRyzeSend } from "./embeddedRyzeSend.js";
+import { createEmbeddedWhatsAppEngine } from "./embeddedRyzeSend.js";
 
 const PORT = Number(process.env.PORT) || 3000;
 const TRENDING_CACHE_TTL_MS = 8 * 60 * 60 * 1000;
@@ -345,7 +345,7 @@ async function getTrendingNichePayload(forceRefresh = false): Promise<TrendingNi
 
 async function startServer() {
   const app = express();
-  const ryzesend = createEmbeddedRyzeSend();
+  const whatsappEngine = createEmbeddedWhatsAppEngine();
 
   app.use(express.json({ limit: "12mb" }));
 
@@ -355,11 +355,11 @@ async function startServer() {
   });
 
   app.get("/api/health", async (_req, res) => {
-    const adminState = ryzesend.getAdminState();
+    const adminState = whatsappEngine.getAdminState();
     res.json({
       status: "ok",
       time: new Date().toISOString(),
-      ryzesend: {
+      whatsapp: {
         configured: adminState.configured,
         running: adminState.running,
         booting: adminState.booting,
@@ -376,12 +376,12 @@ async function startServer() {
     res.json(payload);
   });
 
-  app.get("/api/ryzesend-admin/status", (_req, res) => {
-    res.json(ryzesend.getAdminState());
+  app.get(["/api/whatsapp-engine-admin/status", "/api/ryzesend-admin/status"], (_req, res) => {
+    res.json(whatsappEngine.getAdminState());
   });
 
-  app.post("/api/ryzesend-admin/start", async (_req, res) => {
-    const state = await ryzesend.ensureStarted();
+  app.post(["/api/whatsapp-engine-admin/start", "/api/ryzesend-admin/start"], async (_req, res) => {
+    const state = await whatsappEngine.ensureStarted();
     res.json({ ok: true, ...state });
   });
 
@@ -436,7 +436,7 @@ async function startServer() {
     })
   );
 
-  app.use("/api/ryzesend", ryzesend.router);
+  app.use(["/api/whatsapp-engine", "/api/ryzesend"], whatsappEngine.router);
 
   app.use((req, res, next) => {
     if (req.url.startsWith("/supabase-proxy") || req.url.startsWith("/api")) {
@@ -464,7 +464,7 @@ async function startServer() {
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
     console.log("Supabase Proxy active at /supabase-proxy");
-    console.log("RyzeSend embedded at /api/ryzesend");
+    console.log("WhatsApp dispatch engine mounted.");
   });
 }
 
