@@ -80,10 +80,10 @@ const defaultProfile = (identity: UserIdentity): ProfileData => ({
 });
 
 const parseNumbers = (raw: string) =>
-  raw
+  Array.from(new Set(raw
     .split(/\r?\n|,|;/)
     .map((item) => item.replace(/\D/g, ''))
-    .filter((item) => item.length >= 12);
+    .filter((item) => item.length >= 12 && item.length <= 15)));
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return 'Agora';
@@ -152,9 +152,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
           interval: String(profileData.interval ?? prev.interval),
         }));
       }
-      if (!silent) {
-        setError('');
-      }
+      setError('');
     } catch (err: any) {
       if (!silent) {
         setError(err.message || 'Nao foi possivel carregar o motor de disparo.');
@@ -493,7 +491,13 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
 
               {engineStatus?.qrCode ? (
                 <div className="rounded-[2rem] border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col lg:flex-row gap-6 items-center">
-                  <img src={engineStatus.qrCode} alt="QR Code do WhatsApp" className="w-52 h-52 rounded-3xl bg-white p-4" />
+                  <div className="rounded-[2rem] bg-white p-3 shadow-2xl">
+                    <img
+                      src={engineStatus.qrCode}
+                      alt="QR Code do WhatsApp"
+                      className="w-72 h-72 md:w-80 md:h-80 block"
+                    />
+                  </div>
                   <div className="space-y-3">
                     <p className="text-[10px] font-black text-amber-300 uppercase tracking-widest">Leitura pendente</p>
                     <h3 className="text-2xl font-black text-white">Escaneie este QR com o WhatsApp.</h3>
@@ -548,7 +552,7 @@ export default function BulkSender({ currentProjectDesc, identity }: BulkSenderP
                     <span className="truncate">{selectedFile ? selectedFile.name : 'Imagem, audio ou video para anexar'}</span>
                     <input
                       type="file"
-                      accept="image/*,audio/*,video/*,.txt"
+                      accept="image/*,audio/*,video/*"
                       className="hidden"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                     />

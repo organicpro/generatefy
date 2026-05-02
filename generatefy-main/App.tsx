@@ -22,6 +22,7 @@ import ProductCreator from './components/ProductCreator';
 import BulkSender from './components/BulkSender';
 import Auth from './components/Auth';
 import GroupFinder from './components/GroupFinder';
+import NicheMining, { MinedNicheSelection } from './components/NicheMining';
 import { db, auth, isFirebaseConfigured } from './lib/firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, where, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -46,7 +47,7 @@ const App: React.FC = () => {
   const [cooldown, setCooldown] = useState(false);
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<AppView>('product-creator');
+  const [currentView, setCurrentView] = useState<AppView>('niche-mining');
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isIdentityModalOpen, setIsIdentityModalOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
@@ -58,6 +59,7 @@ const App: React.FC = () => {
   });
   const [workflowStep, setWorkflowStep] = useState<number>(1); 
   const [currentProduct, setCurrentProduct] = useState<{name: string, type: string, description: string} | null>(null);
+  const [minedNiche, setMinedNiche] = useState<MinedNicheSelection | null>(null);
   const lastIframeHtml = useRef('');
 
   useEffect(() => {
@@ -362,8 +364,8 @@ const App: React.FC = () => {
     setWorkflowStep(nextStep);
     
     const stepToView: Record<number, AppView> = {
-      1: 'product-creator',
-      2: 'builder',
+      1: 'niche-mining',
+      2: 'product-creator',
       3: 'outreach',
       4: 'finder',
       5: 'bulk-sender'
@@ -445,7 +447,7 @@ const App: React.FC = () => {
     }
   }, [generatedHtml, identity.apiKey, activePreset]);
 
-  const handleReset = () => { setCurrentView('chat'); setStatus(GenerationStatus.IDLE); setGeneratedHtml(''); setHistory([]); setLastDescription(''); setCooldown(false); setCurrentProjectId(null); };
+  const handleReset = () => { setCurrentView('niche-mining'); setWorkflowStep(1); setStatus(GenerationStatus.IDLE); setGeneratedHtml(''); setHistory([]); setLastDescription(''); setCooldown(false); setCurrentProjectId(null); setCurrentProduct(null); setMinedNiche(null); };
 
   const handleLogout = async () => {
     if (auth) {
@@ -455,7 +457,7 @@ const App: React.FC = () => {
         setSavedProjects([]);
         localStorage.removeItem(LOCAL_PROJECTS_KEY);
         setIsIdentityModalOpen(false);
-        setCurrentView('chat');
+        setCurrentView('niche-mining');
       } catch (err) {
         console.error("Erro ao sair:", err);
       }
@@ -493,7 +495,7 @@ const App: React.FC = () => {
         onManualHtmlUpdate={handleManualHtmlUpdate}
         onUndo={handleUndo}
         canUndo={htmlHistory.length > 1}
-        onNextStep={() => handleWorkflowNext(3)}
+        onNextStep={() => handleWorkflowNext(2)}
       />;
       case 'niches': return <NicheExplorer onSelectNiche={handleGenerate} />;
       case 'opportunities': return <OpportunityMarket onSelect={handleGenerate} />;
@@ -541,12 +543,27 @@ const App: React.FC = () => {
         }}
         onNewProject={handleReset} 
       />;
-      case 'product-creator': return <ProductCreator identity={identity} onOpenIdentity={() => setIsIdentityModalOpen(true)} onProductCreated={(name, type, desc) => {
+      case 'niche-mining': return <NicheMining onSelect={(selection) => {
+        setMinedNiche(selection);
+        setCurrentProduct(null);
+        setGeneratedHtml('');
+        setHtmlHistory([]);
+        setCurrentProjectId(null);
+        setLastDescription(selection.description || selection.niche);
+        setWorkflowStep(2);
+        setCurrentView('product-creator');
+      }} />;
+      case 'product-creator': return <ProductCreator identity={identity} seedNiche={minedNiche} onOpenIdentity={() => setIsIdentityModalOpen(true)} onProductCreated={(name, type, desc) => {
         setCurrentProduct({ name, type, description: desc });
         setLastDescription(desc);
-        setWorkflowStep(2);
-        setCurrentView('builder');
-        handleGenerate(`Crie uma landing page de alta conversão para meu ${type} chamado "${name}". Foco em vendas. Detalhes: ${desc}`);
+        setGeneratedHtml('');
+        setHtmlHistory([]);
+        setCurrentProjectId(null);
+        setStatus(GenerationStatus.IDLE);
+        setError('');
+        setWorkflowStep(3);
+        setCurrentView('outreach');
+        setHistory(prev => [...prev, `Oferta configurada: ${name} (${type}).`]);
       }} />;
       case 'outreach': return <OutreachGenerator 
         currentProjectDesc={currentProduct?.description || lastDescription} 
@@ -567,7 +584,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     switch (currentView) {
-      case 'product-creator': setWorkflowStep(1); break;
+      case 'niche-mining': setWorkflowStep(1); break;
+      case 'product-creator': setWorkflowStep(2); break;
       case 'builder': setWorkflowStep(2); break;
       case 'outreach': setWorkflowStep(3); break;
       case 'finder': setWorkflowStep(4); break;
@@ -616,11 +634,13 @@ const App: React.FC = () => {
         <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-primary/2 blur-[100px] rounded-full pointer-events-none" />
         
-        <WorkflowStepper currentStep={workflowStep} />
-        
-        <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar relative z-10" data-tour="tour-welcome">
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 min-h-full">
-            {renderCurrentView()}
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row relative z-10 overflow-hidden">
+          <WorkflowStepper currentStep={workflowStep} onSelectStep={handleWorkflowNext} />
+          
+          <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar" data-tour="tour-welcome">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 min-h-full">
+              {renderCurrentView()}
+            </div>
           </div>
         </div>
       </main>

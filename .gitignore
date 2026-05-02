@@ -17,11 +17,12 @@ Thumbs.db
 
 generatefy-main/node_modules/
 generatefy-main/dist/
+generatefy-main/.server-dist/
 generatefy-main/.vite/
+generatefy-main/data/
 generatefy-main/*.log
 
 Ryzesend/easyshoting/node_modules/
 Ryzesend/easyshoting/data/
 Ryzesend/easyshoting/.wwebjs_cache/
 Ryzesend/easyshoting/*.log
-

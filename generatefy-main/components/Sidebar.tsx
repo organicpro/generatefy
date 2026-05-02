@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   Sparkles, History, Send, MessageSquare, Plus, Clock, 
-  ShieldCheck, LayoutGrid, Target, DollarSign, Menu, X, Home,
+  ShieldCheck, Target, DollarSign, Menu, X, Home,
   ChevronRight, Layers, Box, Trash2, BrainCircuit, Palette, Radar, FolderOpen, GraduationCap,
   Zap, HelpCircle, UserCircle, Loader2, Image as ImageIcon, Crown, Moon, Sun, Ghost, Database
 } from 'lucide-react';
@@ -161,13 +161,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-3 space-y-10">
           <div>
-            {!isCollapsed && <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.3em] px-5 mb-6 opacity-40">Menu de Operação</p>}
+            {!isCollapsed && <p className="text-[8px] font-black text-zinc-700 uppercase tracking-[0.3em] px-5 mb-6 opacity-40">Jornada Principal</p>}
             <div className="space-y-1">
-              <NavItem view="product-creator" icon={Zap} label="Criar Oferta" badge={workflowStep === 1 ? "LIVE" : undefined} />
-              <NavItem view="builder" icon={LayoutGrid} label="Landing Page" badge={workflowStep === 2 ? "LIVE" : undefined} />
-              <NavItem view="outreach" icon={MessageSquare} label="Scripts Copy" badge={workflowStep === 3 ? "LIVE" : undefined} />
-              <NavItem view="finder" icon={Target} label="Lead Finder" badge={workflowStep === 4 ? "LIVE" : undefined} />
-              <NavItem view="bulk-sender" icon={Send} label="Engine de Conversão" badge={workflowStep === 5 ? "LIVE" : undefined} />
+              <NavItem view="niche-mining" icon={Radar} label="Mineração" badge={workflowStep === 1 ? "LIVE" : undefined} />
+              <NavItem view="product-creator" icon={Zap} label="Criar Oferta" badge={workflowStep === 2 ? "LIVE" : undefined} />
+              <NavItem view="outreach" icon={MessageSquare} label="Copy de Abordagem" badge={workflowStep === 3 ? "LIVE" : undefined} />
+              <NavItem view="finder" icon={Target} label="Mapa de Leads" badge={workflowStep === 4 ? "LIVE" : undefined} />
+              <NavItem view="bulk-sender" icon={Send} label="Disparo WhatsApp" badge={workflowStep === 5 ? "LIVE" : undefined} />
             </div>
           </div>
 

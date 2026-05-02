@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Plus, Sparkles, BookOpen, AppWindow, ArrowRight, Loader2, 
   CheckCircle2, Download, Share2, Rocket, Zap, Wand2,
@@ -13,9 +13,16 @@ interface ProductCreatorProps {
   onProductCreated: (productName: string, productType: string, description: string) => void;
   identity: UserIdentity;
   onOpenIdentity: () => void;
+  seedNiche?: ProductSeed | null;
 }
 
 type ProductType = 'ebook' | 'app';
+
+interface ProductSeed {
+  niche: string;
+  targetAudience?: string;
+  productType?: ProductType;
+}
 
 const APP_MODELS = [
   {
@@ -100,7 +107,7 @@ const APP_MODELS = [
   }
 ];
 
-export default function ProductCreator({ onProductCreated, identity, onOpenIdentity }: ProductCreatorProps) {
+export default function ProductCreator({ onProductCreated, identity, onOpenIdentity, seedNiche }: ProductCreatorProps) {
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<ProductType>('ebook');
   const [niche, setNiche] = useState('');
@@ -112,6 +119,17 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
   const [errorMessage, setErrorMessage] = useState('');
   
   const [currentWave, setCurrentWave] = useState(0);
+
+  useEffect(() => {
+    if (!seedNiche) return;
+
+    setSelectedType(seedNiche.productType || 'ebook');
+    setNiche(seedNiche.niche || '');
+    setTargetAudience(seedNiche.targetAudience || '');
+    setGeneratedContent(null);
+    setProductHtml('');
+    setErrorMessage('');
+  }, [seedNiche]);
   
   const productTypes = [
     { id: 'ebook', icon: BookOpen, label: 'Ebook Digital', desc: 'Conteúdo educativo em PDF' },
@@ -124,7 +142,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
       return;
     }
     if (!identity.apiKey) {
-      setErrorMessage('Configure sua chave Gemini no Protocolo de Identidade antes de gerar a landing page.');
+      setErrorMessage('Configure sua chave Gemini no Protocolo de Identidade antes de gerar a oferta.');
       return;
     }
     setErrorMessage('');
@@ -188,9 +206,14 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         let appHtml = APP_TEMPLATES[generatedContent.id] || APP_TEMPLATES['fitness']; // Fallback
 
         // Personalização leve do template com os dados gerados
-        appHtml = appHtml.replace(/Atleta/g, identity.name || 'Usuário');
-        appHtml = appHtml.replace(/FitFlow AI/g, generatedContent.title);
-        appHtml = appHtml.replace(/MoneyMind/g, generatedContent.title);
+        appHtml = appHtml
+          .replace(/\{\{APP_TITLE\}\}/g, generatedContent.title || 'App Generatefy')
+          .replace(/\{\{APP_SUBTITLE\}\}/g, generatedContent.subtitle || 'Seu app pronto e funcional')
+          .replace(/\{\{USER_NAME\}\}/g, identity.name || 'Usuario')
+          .replace(/\{\{NICHE\}\}/g, niche || generatedContent.title || 'Rotina digital')
+          .replace(/Atleta/g, identity.name || 'Usuario')
+          .replace(/FitFlow AI/g, generatedContent.title)
+          .replace(/MoneyMind/g, generatedContent.title);
         
         setProductHtml(appHtml);
         setIsPreviewOpen(true);
@@ -360,18 +383,18 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10 bg-black custom-scrollbar relative">
       {isPreviewOpen && (
-        <div className="fixed inset-0 z-[100] bg-zinc-950 flex animate-in fade-in zoom-in-95 duration-500">
+        <div className="fixed inset-0 z-[100] bg-zinc-950 flex flex-col xl:flex-row animate-in fade-in zoom-in-95 duration-500">
           {/* Main Workspace */}
-          <div className="flex-1 flex flex-col relative overflow-hidden">
+          <div className="flex-1 min-h-0 flex flex-col relative overflow-hidden">
             {/* Minimal Header */}
-            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md z-50">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+            <div className="h-14 shrink-0 border-b border-white/5 flex items-center justify-between px-4 sm:px-6 bg-black/40 backdrop-blur-md z-50">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0">
                   {selectedType === 'app' ? <Smartphone className="w-4 h-4 text-primary" /> : <BookOpen className="w-4 h-4 text-primary" />}
                 </div>
-                <div>
-                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">{generatedContent?.title || 'Preview'}</h3>
-                  <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest leading-none mt-0.5">GENERATEFY STUDIO ENGINE v3.0</p>
+                <div className="min-w-0">
+                  <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em] truncate">{generatedContent?.title || 'Preview'}</h3>
+                  <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest leading-none mt-0.5 truncate">GENERATEFY STUDIO ENGINE v3.0</p>
                 </div>
               </div>
               <button 
@@ -383,31 +406,31 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             </div>
 
             {/* Viewer Area */}
-            <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-[#0a0a0a]">
+            <div className="flex-1 min-h-0 overflow-auto relative flex items-center justify-center bg-[#0a0a0a] p-3 sm:p-6 custom-scrollbar">
               {/* Subtle Background Glow */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
               
               {selectedType === 'app' ? (
-                <div className="relative h-[85vh] w-auto aspect-[9/19] animate-in slide-in-from-bottom-8 duration-700">
+                <div className="relative h-[min(68vh,720px)] sm:h-[min(78vh,780px)] xl:h-[85vh] w-auto max-w-[92vw] aspect-[9/19] animate-in slide-in-from-bottom-8 duration-700">
                   {/* Premium Device Frame */}
-                  <div className="h-full w-full bg-[#050505] rounded-[3.5rem] p-3 border-[12px] border-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden flex flex-col">
+                  <div className="h-full w-full bg-[#050505] rounded-[2.6rem] sm:rounded-[3.5rem] p-2 sm:p-3 border-[8px] sm:border-[12px] border-neutral-900 shadow-[0_0_100px_rgba(0,0,0,0.8),inset_0_0_20px_rgba(255,255,255,0.05)] relative overflow-hidden flex flex-col">
                     {/* Dynamic Island / Notch */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-7 bg-black rounded-b-2xl z-50 flex items-center justify-center gap-2">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 sm:w-24 h-6 sm:h-7 bg-black rounded-b-2xl z-50 flex items-center justify-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-zinc-800"></div>
                       <div className="w-8 h-1 bg-zinc-800 rounded-full"></div>
                     </div>
                     
                     <iframe 
                       srcDoc={productHtml}
-                      className="w-full h-full border-none rounded-[2.5rem]"
+                      className="w-full h-full border-none rounded-[1.9rem] sm:rounded-[2.5rem]"
                       title="App Preview"
                     />
                   </div>
                   {/* External Buttons Simulation */}
-                  <div className="absolute top-28 -left-[14px] w-[3px] h-10 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
-                  <div className="absolute top-44 -left-[14px] w-[3px] h-14 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
-                  <div className="absolute top-60 -left-[14px] w-[3px] h-14 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
-                  <div className="absolute top-40 -right-[14px] w-[3px] h-20 bg-neutral-800 rounded-r-md border-y border-white/5"></div>
+                  <div className="hidden sm:block absolute top-28 -left-[14px] w-[3px] h-10 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
+                  <div className="hidden sm:block absolute top-44 -left-[14px] w-[3px] h-14 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
+                  <div className="hidden sm:block absolute top-60 -left-[14px] w-[3px] h-14 bg-neutral-800 rounded-l-md border-y border-white/5"></div>
+                  <div className="hidden sm:block absolute top-40 -right-[14px] w-[3px] h-20 bg-neutral-800 rounded-r-md border-y border-white/5"></div>
                 </div>
               ) : (
                 <div className="w-full h-full overflow-y-auto p-4 md:p-12 lg:p-20 bg-zinc-900/10 custom-scrollbar selection:bg-primary/30">
@@ -482,7 +505,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
           </div>
 
           {/* Action Sidebar */}
-          <div className="w-[320px] h-full border-l border-white/5 bg-zinc-950 p-8 flex flex-col gap-8 shadow-2xl z-[110]">
+          <div className="w-full xl:w-[320px] h-auto xl:h-full max-h-[42vh] xl:max-h-none border-t xl:border-t-0 xl:border-l border-white/5 bg-zinc-950 p-4 sm:p-6 xl:p-8 flex flex-col gap-5 xl:gap-8 shadow-2xl z-[110]">
             <div className="space-y-1">
               <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Situação Operacional</h4>
               <div className="flex items-center gap-2 text-green-500">
@@ -533,7 +556,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                 onClick={handleFinish}
                 className="w-full py-5 bg-primary text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_20px_50px_rgba(34,197,94,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
               >
-                Avançar: Checkout
+                Avancar: Copy
               </button>
             </div>
           </div>
@@ -544,7 +567,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         <header className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black tracking-widest uppercase">
             <Rocket className="w-3.5 h-3.5 animate-bounce" />
-            Passo 01: Definição do Produto
+            Passo 02: Definição do Produto
           </div>
           <h1 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter">
             O que vamos <span className="text-primary italic">vender?</span>
@@ -553,6 +576,12 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             Escolha um modelo de Aplicativo pronto ou use a IA para criar um Ebook exclusivo para o seu nicho.
           </p>
         </header>
+
+        {seedNiche && (
+          <div className="rounded-[2rem] border border-primary/20 bg-primary/10 px-5 py-4 text-sm font-semibold text-primary">
+            Nicho importado da mineração: <span className="text-white">{seedNiche.niche}</span>
+          </div>
+        )}
 
         {errorMessage && (
           <div className="rounded-[2rem] border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-sm font-semibold flex items-start justify-between gap-4 text-amber-100">
@@ -734,7 +763,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                       >
                         <div className="flex items-center gap-3">
                           {generatingContent ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                          {selectedType === 'ebook' ? (generatingContent ? `Materializando Onda ${currentWave}/11...` : 'Gerar Conteúdo (20+ Págs)') : 'Gerar Planejamento Completo'}
+                          {selectedType === 'ebook' ? (generatingContent ? `Materializando Onda ${currentWave}/11...` : 'Gerar Conteúdo (20+ Págs)') : (generatingContent ? `Montando App ${currentWave}/10...` : 'Gerar App Funcional')}
                         </div>
                         {generatingContent && (
                           <div className="w-48 h-1 bg-black/10 rounded-full mt-2 overflow-hidden">
@@ -751,7 +780,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                       onClick={handleFinish}
                       className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 hover:bg-primary transition-all group shadow-xl shadow-white/5"
                     >
-                      PASSO SEGUINTE: CONFIGURAR VENDA
+                      PASSO SEGUINTE: ESCREVER COPY
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "start": "node server.ts",
-    "build": "tsc && vite build",
+    "start": "node .server-dist/server.js",
+    "build": "tsc --noEmit && vite build && npm run build:server",
+    "build:server": "tsc -p tsconfig.server.json",
     "preview": "vite preview",
     "lint": "tsc --noEmit"
   },
@@ -22,15 +23,20 @@
     "http-proxy-middleware": "^3.0.5",
     "identity-obj-proxy": "^3.0.0",
     "lucide-react": "^0.475.0",
+    "multer": "^2.0.2",
     "motion": "^12.38.0",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.0.1",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "whatsapp-web.js": "1.28.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.13.1",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
