@@ -79,11 +79,26 @@ const defaultProfile = (identity: UserIdentity): ProfileData => ({
   acceptedTerms: true,
 });
 
-const parseNumbers = (raw: string) =>
-  Array.from(new Set(raw
-    .split(/\r?\n|,|;/)
-    .map((item) => item.replace(/\D/g, ''))
-    .filter((item) => item.length >= 12 && item.length <= 15)));
+const normalizePhoneDigits = (value: string) => {
+  const digits = value.replace(/\D/g, '').replace(/^0+/, '');
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  if (digits.length >= 12 && digits.length <= 15) return digits;
+  return '';
+};
+
+const parseNumbers = (raw: string) => {
+  const candidates = raw
+    .split(/\r?\n|,|;|\|/)
+    .flatMap((chunk) => {
+      const digits = chunk.replace(/\D/g, '').replace(/^0+/, '');
+      if (digits.length >= 10 && digits.length <= 15) return [chunk];
+      return digits.match(/55\d{10,11}|\d{10,11}/g) || [];
+    })
+    .map(normalizePhoneDigits)
+    .filter(Boolean);
+
+  return Array.from(new Set(candidates));
+};
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return 'Agora';

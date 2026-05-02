@@ -117,8 +117,20 @@ function cleanWhatsAppSession() {
 }
 
 function sanitizePhoneNumber(value: unknown) {
-  const digits = String(value ?? "").replace(/\D/g, "");
+  const digits = String(value ?? "").replace(/\D/g, "").replace(/^0+/, "");
+  if (digits.length === 10 || digits.length === 11) {
+    return `55${digits}`;
+  }
   return digits.length >= 12 && digits.length <= 15 ? digits : "";
+}
+
+function extractPhoneCandidates(value: unknown) {
+  const raw = String(value ?? "");
+  const digits = raw.replace(/\D/g, "").replace(/^0+/, "");
+  if (digits.length >= 10 && digits.length <= 15) {
+    return [raw];
+  }
+  return digits.match(/55\d{10,11}|\d{10,11}/g) || [raw];
 }
 
 function normalizeNumberList(values: unknown[]) {
@@ -126,10 +138,12 @@ function normalizeNumberList(values: unknown[]) {
   const numbers: string[] = [];
 
   for (const value of values) {
-    const digits = sanitizePhoneNumber(value);
-    if (digits && !seen.has(digits)) {
-      seen.add(digits);
-      numbers.push(digits);
+    for (const candidate of extractPhoneCandidates(value)) {
+      const digits = sanitizePhoneNumber(candidate);
+      if (digits && !seen.has(digits)) {
+        seen.add(digits);
+        numbers.push(digits);
+      }
     }
   }
 
