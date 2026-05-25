@@ -18,6 +18,29 @@ interface OutreachGeneratorProps {
 type Channel = 'whatsapp' | 'instagram' | 'email' | 'coldcall';
 type Tone = 'friendly' | 'professional' | 'creative' | 'urgent';
 
+const cleanGeneratedScript = (value: string) => {
+  if (/gamma-page|gamma-card|page-kicker|gerado em modo interno/i.test(value)) {
+    return '';
+  }
+
+  const withoutCodeFence = value.replace(/```(?:html|text)?/gi, '').replace(/```/g, '');
+  const withoutTags = withoutCodeFence
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<[^>]*>/g, '');
+
+  return withoutTags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
 export default function OutreachGenerator({ currentProjectDesc, identity, onNext }: OutreachGeneratorProps) {
   const [selectedChannel, setSelectedChannel] = useState<Channel>('whatsapp');
   const [selectedTone, setSelectedTone] = useState<Tone>('friendly');
@@ -62,8 +85,13 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
         5. Use o nome do produto ou a promessa principal do projeto: ${currentProjectDesc}.
         
         Canal de Envio: ${selectedChannel}.
+        Tom selecionado: ${selectedTone}.
         
-        Retorne APENAS o texto da mensagem final.
+        PROIBIDO:
+        - Nao gere HTML, Markdown, JSON, codigo, tags, <section>, <div>, titulos de pagina ou layout.
+        - Nao explique o que voce fez.
+
+        Retorne APENAS o texto da mensagem final pronta para copiar e enviar.
       `;
 
       const text = await generateGroqText({
@@ -73,7 +101,8 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
         maxTokens: 2048,
       });
 
-      setScript(text || "");
+      const cleanedScript = cleanGeneratedScript(text || "");
+      setScript(cleanedScript || 'Oi, tudo bem?\n\nVi algo que pode te ajudar com esse tema e achei que fazia sentido te mostrar. Posso te enviar rapidinho?');
     } catch (e) {
       console.error(e);
       setScript('Nao foi possivel gerar o script agora. Tente novamente em alguns instantes.');

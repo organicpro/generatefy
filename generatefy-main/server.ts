@@ -80,6 +80,16 @@ function pickQuotedValue(prompt: string, fallback: string) {
   return quoted?.[1]?.trim() || fallback;
 }
 
+function pickLabeledValue(prompt: string, label: string, fallback: string) {
+  const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = prompt.match(new RegExp(`${escapedLabel}\\s*:?\\s*([^\\n]{4,240})`, "i"));
+  return match?.[1]?.trim() || fallback;
+}
+
+function containsAny(value: string, terms: string[]) {
+  return terms.some((term) => value.includes(term));
+}
+
 function makeInternalAiFallback(messages: GroqChatMessage[] = [], wantsJson = false) {
   const prompt = extractPromptText(messages);
   const lower = prompt.toLowerCase();
@@ -120,7 +130,46 @@ function makeInternalAiFallback(messages: GroqChatMessage[] = [], wantsJson = fa
     });
   }
 
-  if (lower.includes("html") || lower.includes("ebook") || lower.includes("pagina") || lower.includes("section")) {
+  const isOutreachRequest = containsAny(lower, [
+    "social selling",
+    "mensagem de conex",
+    "mensagem final",
+    "abertura de loop",
+    "canal de envio",
+    "whatsapp",
+    "instagram",
+    "cold call",
+    "coldcall",
+    "prospec",
+    "abordagem",
+    "texto da mensagem",
+    "script de venda",
+    "script gerado",
+  ]);
+
+  if (!wantsJson && isOutreachRequest) {
+    const outreachTopic = pickLabeledValue(prompt, "CONTEXTO DO PRODUTO", topic).replace(/\s+/g, " ").trim();
+    return `Oi, tudo bem?
+
+Vi que voce se interessa por ${outreachTopic} e lembrei de te mandar uma coisa bem pratica.
+
+Montei um material simples que ajuda a resolver esse ponto sem enrolacao e com passos faceis de aplicar. Posso te mostrar rapidinho?`;
+  }
+
+  const wantsHtmlOutput = containsAny(lower, [
+    "retorne apenas o html",
+    "html puro",
+    "codigo html",
+    "código html",
+    "gamma-page",
+    "gamma-card",
+    "<section",
+    "ebook",
+    "pagina do ebook",
+    "página do ebook",
+  ]);
+
+  if (wantsHtmlOutput) {
     return `
       <section class="gamma-page gamma-card-dark">
         <div class="page-kicker">GERADO EM MODO INTERNO</div>
