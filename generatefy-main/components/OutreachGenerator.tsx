@@ -75,7 +75,7 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
       setScript(text || "");
     } catch (e) {
       console.error(e);
-      setScript('Erro ao gerar script. Verifique se GROQ_API_KEY esta configurada no Railway.');
+      setScript('Nao foi possivel gerar o script agora. Tente novamente em alguns instantes.');
     } finally {
       setLoading(false);
     }

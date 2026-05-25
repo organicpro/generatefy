@@ -392,13 +392,14 @@ async function startServer() {
 
   app.post("/api/groq/chat", async (req: Request<unknown, unknown, GroqChatBody>, res: Response) => {
     const messages = Array.isArray(req.body.messages) ? req.body.messages : [];
-    const apiKey = req.body.apiKey?.trim() || process.env.GROQ_API_KEY?.trim();
+    const serverGroqKey = process.env.GROQ_API_KEY?.trim();
+    const apiKey = serverGroqKey || req.body.apiKey?.trim();
     const model = req.body.model?.trim() || process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
 
     if (!apiKey) {
       res.status(400).json({
         error: "GROQ_API_KEY_MISSING",
-        message: "Configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.",
+        message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
       });
       return;
     }
@@ -429,7 +430,7 @@ async function startServer() {
       if (!groqResponse.ok) {
         res.status(groqResponse.status).json({
           error: data?.error?.code || "GROQ_REQUEST_FAILED",
-          message: data?.error?.message || "Falha na API da Groq.",
+          message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
         });
         return;
       }

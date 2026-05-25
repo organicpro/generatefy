@@ -1214,12 +1214,12 @@ export const generateWebsite = async (
   partialUpdate?: { sectionId: string, oldHtml: string },
   groqApiKey?: string
 ): Promise<string> => {
-  const activeGroqKey = groqApiKey?.trim() || customApiKey?.trim() || (import.meta as any).env.VITE_GROQ_API_KEY || '';
+  const activeGroqKey = '';
   const activeKey = activeGroqKey;
 
   // Check for OpenAI keys being used where a Groq key is expected.
   if (activeKey.startsWith('sk-')) {
-    throw new Error("Voce esta usando uma chave da OpenAI (sk-...) em vez de uma chave da Groq (gsk_...). Configure GROQ_API_KEY no Railway.");
+    throw new Error("Nao foi possivel gerar agora. Tente novamente em alguns instantes.");
   }
   
   const ai = new GroqCompatAI({ apiKey: activeKey });
@@ -1304,10 +1304,9 @@ Output the full HTML document.`;
       console.error("Groq API error, checking fallback:", error);
     }
     
-    if (groqApiKey?.trim()) {
-      try {
-        console.log("Using Groq fallback with Master Template Strategy...");
-        const groqInstruction = `
+    try {
+      console.log("Using fallback with Master Template Strategy...");
+      const groqInstruction = `
 ${selectedInstruction}
 
 [MASTER REFERENCE TEMPLATE]:
@@ -1332,37 +1331,23 @@ ${MASTER_TEMPLATE}
 5. LOGO STRUCTURE: Keep the <a> tag with data-gf-id="logo". You can change the text or replace it with an <img>.
 6. OUTPUT: Return the COMPLETE HTML document based on the Master Template.
 `;
-        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${groqApiKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
-            messages: [
-              { role: 'system', content: groqInstruction },
-              { role: 'user', content: prompt.substring(0, 25000) } // Safety truncate for Groq
-            ],
-            temperature: 0.3,
-            max_completion_tokens: 16384
-          })
-        });
+      const text = await generateGroqText({
+        prompt: prompt.substring(0, 25000),
+        system: groqInstruction,
+        temperature: 0.3,
+        maxTokens: 16384,
+      });
+      let groqExtracted = extractCode(text || '', true);
         
-        const data = await groqResponse.json();
-        const text = data.choices?.[0]?.message?.content;
-        let groqExtracted = extractCode(text || '', true);
-        
-        if (currentHtml && !groqExtracted.toLowerCase().includes('<head')) {
-          groqExtracted = mergePartialUpdate(groqExtracted, currentHtml);
-        }
-
-        if (validateHtmlIntegrity(groqExtracted, currentHtml)) {
-          return groqExtracted;
-        }
-      } catch (groqError) {
-        console.error("Groq fallback also failed:", groqError);
+      if (currentHtml && !groqExtracted.toLowerCase().includes('<head')) {
+        groqExtracted = mergePartialUpdate(groqExtracted, currentHtml);
       }
+
+      if (validateHtmlIntegrity(groqExtracted, currentHtml)) {
+        return groqExtracted;
+      }
+    } catch (groqError) {
+      console.error("Groq fallback also failed:", groqError);
     }
     
     // Final fallback through the same Groq proxy.
@@ -1401,8 +1386,7 @@ export const generateSocialPost = async (
   customApiKey?: string,
   aspectRatio: 'square' | 'story' = 'square'
 ): Promise<string> => {
-  const activeKey = customApiKey?.trim() || 
-                    (import.meta as any).env.VITE_GROQ_API_KEY || '';
+  const activeKey = '';
   const ai = new GroqCompatAI({ apiKey: activeKey });
   const prompt = `
     [ACT AS AWARD-WINNING ART DIRECTOR]

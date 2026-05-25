@@ -26,15 +26,11 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
     setLeads([]);
     
     try {
-      const env = (import.meta as any).env || {};
-      const activeKey = customApiKey || env.VITE_GROQ_API_KEY || '';
-
       const ai = {
         models: {
           generateContent: async ({ contents }: any) => {
             const text = await generateGroqText({
               prompt: String(contents),
-              customApiKey: activeKey,
               temperature: 0.35,
               maxTokens: 4096,
             });
@@ -144,9 +140,9 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
       const errorMsg = e.toString();
       
       if (errorMsg.includes("404") || errorMsg.includes("NOT_FOUND")) {
-        setError("Erro de Modelo: a Groq recusou o modelo atual. Verifique GROQ_MODEL ou tente novamente em alguns segundos.");
+        setError("Nao foi possivel buscar oportunidades agora. Tente novamente em alguns instantes.");
       } else if (errorMsg.includes("403")) {
-        setError("Acesso negado pela Groq. Verifique se GROQ_API_KEY esta correta no Railway e faca redeploy.");
+        setError("Nao foi possivel buscar oportunidades agora. Tente novamente em alguns instantes.");
       } else {
         setError("O motor de busca falhou ao conectar com o satélite. Verifique sua conexão.");
       }

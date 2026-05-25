@@ -257,7 +257,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
       setProductHtml(''); 
     } catch (error) {
       console.error("Generator error:", error);
-      setErrorMessage("Erro ao validar oferta. Se aparecer falta de chave, configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.");
+      setErrorMessage("Nao foi possivel gerar a oferta agora. Tente novamente em alguns instantes.");
     } finally {
       setLoading(false);
     }
@@ -386,7 +386,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
       }
     } catch (error) {
       console.error("Content generation error:", error);
-      setErrorMessage(`Erro ao materializar conteudo: ${error instanceof Error ? error.message : 'Tente novamente.'}`);
+      setErrorMessage("Nao foi possivel finalizar o ebook agora. Tente novamente em alguns instantes.");
     } finally {
       setGeneratingContent(false);
       setCurrentWave(0);

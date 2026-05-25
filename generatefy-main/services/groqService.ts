@@ -15,7 +15,7 @@ type GroqTextOptions = {
 
 const getBrowserGroqKey = () => {
   const env = (import.meta as any).env || {};
-  return env.VITE_GROQ_API_KEY || '';
+  return env.DEV ? env.VITE_GROQ_API_KEY || '' : '';
 };
 
 export async function generateGroqText({
@@ -49,7 +49,8 @@ export async function generateGroqText({
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const message = payload?.message || payload?.error || 'Falha ao gerar com Groq.';
+    console.error('Groq proxy error:', payload);
+    const message = 'Nao foi possivel gerar agora. Tente novamente em alguns instantes.';
     throw new Error(String(message));
   }
 

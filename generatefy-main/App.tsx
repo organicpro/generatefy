@@ -333,20 +333,20 @@ const App: React.FC = () => {
         const isQuotaError = lowerError.includes('429') || lowerError.includes('quota') || lowerError.includes('resource_exhausted');
         
         if (lowerError.includes('groq_api_key')) {
-          errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.";
+          errorMessage = "Nao foi possivel gerar agora. Tente novamente em alguns instantes.";
         } else if (isQuotaError) {
           errorMessage = "O limite de uso da inteligência artificial foi atingido. Aguarde alguns minutos e tente novamente.";
         } else if (lowerError.includes('token') || lowerError.includes('limit') || lowerError.includes('context')) {
           errorMessage = "O site está muito grande para esta alteração. Tente remover algumas seções ou fazer pedidos mais específicos.";
         } else if (lowerError.includes('api key') || lowerError.includes('invalid_argument') || lowerError.includes('unauthorized')) {
-          errorMessage = "Problema com a chave Groq do servidor. Verifique se GROQ_API_KEY está configurada no Railway e faça redeploy.";
+          errorMessage = "Nao foi possivel gerar agora. Tente novamente em alguns instantes.";
         } else if (lowerError.includes('safety') || lowerError.includes('blocked')) {
           errorMessage = "O pedido foi bloqueado pelos filtros de segurança da IA. Tente reformular sua solicitação.";
         }
       }
       
       if (errorMessage === "API_KEY_MISSING") {
-        errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variáveis do Railway e faça redeploy.";
+        errorMessage = "Nao foi possivel gerar agora. Tente novamente em alguns instantes.";
       }
       
       setError(errorMessage);
@@ -439,7 +439,7 @@ const App: React.FC = () => {
       }
 
       if (errorMessage === "API_KEY_MISSING") {
-        errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variáveis do Railway e faça redeploy.";
+        errorMessage = "Nao foi possivel gerar agora. Tente novamente em alguns instantes.";
       }
       setError(errorMessage);
       setStatus(GenerationStatus.ERROR);

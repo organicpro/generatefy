@@ -200,13 +200,13 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                     type="password" 
                     value={formData.apiKey || ''}
                     onChange={(e) => setFormData({...formData, apiKey: e.target.value})}
-                    placeholder="gsk_... (vazio para usar GROQ_API_KEY do Railway)"
+                    placeholder="Opcional para testes locais"
                     className="w-full bg-black border border-white/5 rounded-xl px-5 py-4 text-xs text-primary font-mono outline-none focus:border-primary/50 transition-all placeholder:text-zinc-900"
                   />
                   <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-[9px] text-zinc-600 leading-tight uppercase font-bold tracking-tight">
-                      Usamos a variavel GROQ_API_KEY do servidor por padrao. Se quiser testar localmente, cole uma <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline group-hover:text-primary transition-colors">chave Groq</a> aqui.
+                      A ferramenta usa a chave central do servidor. Este campo e opcional apenas para testes locais.
                     </p>
                   </div>
                 </div>
@@ -242,7 +242,7 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                     className="w-full bg-black border border-white/5 rounded-xl px-5 py-4 text-xs text-emerald-500 font-mono outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-900"
                   />
                   <p className="text-[8px] text-zinc-700 leading-tight uppercase tracking-widest font-black text-center">
-                    Este campo tambem usa Groq e fica como alternativa local ao GROQ_API_KEY do Railway.
+                    Campo opcional de apoio para testes internos.
                   </p>
                 </div>
               </div>
