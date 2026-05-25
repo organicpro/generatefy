@@ -44,14 +44,17 @@ type GroqChatBody = {
   apiKey?: string;
 };
 
-function getGroqApiKey(requestKey?: string) {
-  return (
-    process.env.GROQ_API_KEY?.trim() ||
-    process.env.VITE_GROQ_API_KEY?.trim() ||
-    process.env.GROQ_KEY?.trim() ||
-    process.env.API_KEY?.trim() ||
-    requestKey?.trim() ||
-    ""
+function getGroqApiKeyCandidates(requestKey?: string) {
+  return Array.from(
+    new Set(
+      [
+        process.env.GROQ_API_KEY?.trim(),
+        process.env.VITE_GROQ_API_KEY?.trim(),
+        process.env.GROQ_KEY?.trim(),
+        process.env.API_KEY?.trim(),
+        requestKey?.trim(),
+      ].filter(Boolean) as string[]
+    )
   );
 }
 
@@ -66,6 +69,79 @@ function getGroqModelCandidates(requestedModel?: string) {
       ].filter(Boolean) as string[]
     )
   );
+}
+
+function extractPromptText(messages: GroqChatMessage[] = []) {
+  return messages.map((message) => message.content || "").join("\n").slice(0, 12000);
+}
+
+function pickQuotedValue(prompt: string, fallback: string) {
+  const quoted = prompt.match(/"([^"]{4,180})"/);
+  return quoted?.[1]?.trim() || fallback;
+}
+
+function makeInternalAiFallback(messages: GroqChatMessage[] = [], wantsJson = false) {
+  const prompt = extractPromptText(messages);
+  const lower = prompt.toLowerCase();
+  const topic = pickQuotedValue(prompt, "produto digital");
+
+  if (wantsJson && lower.includes('"leads"')) {
+    const base = encodeURIComponent(topic);
+    return JSON.stringify({
+      leads: Array.from({ length: 10 }, (_, index) => ({
+        name: `${topic} - oportunidade ${index + 1}`,
+        address: "Buscar e validar na sua regiao",
+        uri: `https://www.google.com/maps/search/?api=1&query=${base}`,
+        rating: 4.7,
+      })),
+    });
+  }
+
+  if (wantsJson || lower.includes('"titles"') || lower.includes('"title"') || lower.includes("json estrito")) {
+    const cleanTopic = topic.replace(/\s+/g, " ").trim();
+    return JSON.stringify({
+      title: `Metodo ${cleanTopic.split(" ").slice(0, 4).join(" ")} Pro`,
+      subtitle: `Um guia pratico para transformar ${cleanTopic} em resultado real, com passos simples e aplicaveis.`,
+      description:
+        `Este produto foi criado para pessoas que precisam de clareza, estrutura e execucao no tema ${cleanTopic}. ` +
+        "O material combina explicacoes diretas, exemplos praticos, checklists e um plano de acao para tirar o leitor da teoria e levar para a implementacao. " +
+        "A proposta e entregar uma jornada completa: entender o problema, aplicar o metodo e acompanhar a evolucao com seguranca.",
+      structure: [
+        "Diagnostico inicial e mapa do problema",
+        "Fundamentos essenciais explicados de forma simples",
+        "Metodo passo a passo para aplicar na rotina",
+        "Exemplos praticos e estudos de caso",
+        "Checklists, exercicios e plano semanal",
+        "Erros comuns e como evitar travamentos",
+        "Plano de acao final para os proximos 30 dias",
+      ],
+      priceSuggestion: "R$ 47,00 a R$ 97,00",
+      bonus: "Checklist de implementacao rapida + plano de acao de 7 dias",
+    });
+  }
+
+  if (lower.includes("html") || lower.includes("ebook") || lower.includes("pagina") || lower.includes("section")) {
+    return `
+      <section class="gamma-page gamma-card-dark">
+        <div class="page-kicker">GERADO EM MODO INTERNO</div>
+        <h2>${topic}</h2>
+        <p>Esta pagina foi criada pelo motor interno para manter sua producao funcionando mesmo quando a IA externa oscila.</p>
+      </section>
+      <section class="gamma-page gamma-card">
+        <div class="page-kicker">PAGINA PRATICA</div>
+        <h2>Plano de execucao</h2>
+        <p>Comece identificando o principal objetivo do leitor, depois transforme esse objetivo em uma acao pequena, mensuravel e executavel ainda hoje.</p>
+        <div class="gamma-grid">
+          <div class="gamma-feature"><strong>Passo 1</strong><br/>Defina o problema principal.</div>
+          <div class="gamma-feature"><strong>Passo 2</strong><br/>Escolha uma acao simples.</div>
+          <div class="gamma-feature"><strong>Passo 3</strong><br/>Execute por sete dias.</div>
+          <div class="gamma-feature"><strong>Passo 4</strong><br/>Revise o resultado e ajuste.</div>
+        </div>
+      </section>
+    `;
+  }
+
+  return `Aqui esta uma versao pronta para uso sobre ${topic}: apresente a promessa principal, mostre o problema que o publico sente, explique o caminho de solucao e finalize com uma chamada direta para acao.`;
 }
 
 let trendingCache: { expiresAt: number; payload: TrendingNichePayload } | null = null;
@@ -416,13 +492,13 @@ async function startServer() {
 
   app.post("/api/groq/chat", async (req: Request<unknown, unknown, GroqChatBody>, res: Response) => {
     const messages = Array.isArray(req.body.messages) ? req.body.messages : [];
-    const apiKey = getGroqApiKey(req.body.apiKey);
+    const apiKeyCandidates = getGroqApiKeyCandidates(req.body.apiKey);
     const modelCandidates = getGroqModelCandidates(req.body.model);
 
-    if (!apiKey) {
-      res.status(400).json({
-        error: "GROQ_API_KEY_MISSING",
-        message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
+    if (apiKeyCandidates.length === 0) {
+      res.json({
+        text: makeInternalAiFallback(messages, req.body.responseFormat?.type === "json_object"),
+        model: "generatefy-internal-fallback",
       });
       return;
     }
@@ -436,49 +512,88 @@ async function startServer() {
       let lastStatus = 502;
       let lastPayload: any = {};
 
-      for (const model of modelCandidates) {
-        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model,
-            messages,
-            temperature: Number.isFinite(req.body.temperature) ? req.body.temperature : 0.3,
-            max_completion_tokens: Math.min(req.body.maxTokens || 8192, 12000),
-            response_format: req.body.responseFormat,
-          }),
-        });
-
-        const data: any = await groqResponse.json().catch(() => ({}));
-
-        if (groqResponse.ok) {
-          res.json({
-            text: data?.choices?.[0]?.message?.content || "",
-            model: data?.model || model,
+      for (const apiKey of apiKeyCandidates) {
+        for (const model of modelCandidates) {
+          const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              temperature: Number.isFinite(req.body.temperature) ? req.body.temperature : 0.3,
+              max_completion_tokens: Math.min(req.body.maxTokens || 8192, 12000),
+              response_format: req.body.responseFormat,
+            }),
           });
-          return;
-        }
 
-        lastStatus = groqResponse.status;
-        lastPayload = data;
-        console.error("Groq model attempt failed:", {
-          model,
-          status: groqResponse.status,
-          error: data?.error?.message || data?.error || data,
-        });
+          const data: any = await groqResponse.json().catch(() => ({}));
+
+          if (groqResponse.ok) {
+            res.json({
+              text: data?.choices?.[0]?.message?.content || "",
+              model: data?.model || model,
+            });
+            return;
+          }
+
+          lastStatus = groqResponse.status;
+          lastPayload = data;
+          console.error("Groq attempt failed:", {
+            keySource: apiKey === req.body.apiKey?.trim() ? "request" : "server",
+            model,
+            status: groqResponse.status,
+            error: data?.error?.message || data?.error || data,
+          });
+        }
       }
 
-      res.status(lastStatus).json({
-        error: lastPayload?.error?.code || "GROQ_REQUEST_FAILED",
-        message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
+      res.json({
+        text: makeInternalAiFallback(messages, req.body.responseFormat?.type === "json_object"),
+        model: "generatefy-internal-fallback",
+        fallbackReason: lastPayload?.error?.code || "GROQ_REQUEST_FAILED",
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       res.status(502).json({ error: "GROQ_NETWORK_ERROR", message });
     }
+  });
+
+  app.get("/api/groq/status", async (_req, res) => {
+    const apiKeyCandidates = getGroqApiKeyCandidates();
+    if (apiKeyCandidates.length === 0) {
+      res.json({ ok: false, mode: "internal-fallback", message: "Nenhuma chave Groq detectada no servidor." });
+      return;
+    }
+
+    for (const model of getGroqModelCandidates()) {
+      try {
+        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKeyCandidates[0]}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "user", content: "Responda OK." }],
+            max_completion_tokens: 8,
+            temperature: 0,
+          }),
+        });
+        const data: any = await groqResponse.json().catch(() => ({}));
+        if (groqResponse.ok) {
+          res.json({ ok: true, mode: "groq", model: data?.model || model });
+          return;
+        }
+      } catch {
+        // Try next model.
+      }
+    }
+
+    res.json({ ok: false, mode: "internal-fallback", message: "Chave detectada, mas a Groq recusou a chamada de teste." });
   });
 
   app.get(["/api/whatsapp-engine-admin/status", "/api/ryzesend-admin/status"], (_req, res) => {
