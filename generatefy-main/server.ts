@@ -171,15 +171,24 @@ Montei um material simples que ajuda a resolver esse ponto sem enrolacao e com p
 
   if (wantsHtmlOutput) {
     return `
-      <section class="gamma-page gamma-card-dark">
+      <section class="gamma-page gamma-card-primary ebook-cover">
         <div class="page-kicker">GERADO EM MODO INTERNO</div>
         <h2>${topic}</h2>
-        <p>Esta pagina foi criada pelo motor interno para manter sua producao funcionando mesmo quando a IA externa oscila.</p>
+        <p class="cover-subtitle">Esta pagina foi criada pelo motor interno para manter sua producao funcionando mesmo quando a IA externa oscila.</p>
+        <div class="ebook-metric-row">
+          <div class="ebook-metric"><strong>1</strong><span>objetivo principal</span></div>
+          <div class="ebook-metric"><strong>4</strong><span>passos de execucao</span></div>
+          <div class="ebook-metric"><strong>7d</strong><span>ciclo de revisao</span></div>
+        </div>
       </section>
       <section class="gamma-page gamma-card">
         <div class="page-kicker">PAGINA PRATICA</div>
         <h2>Plano de execucao</h2>
         <p>Comece identificando o principal objetivo do leitor, depois transforme esse objetivo em uma acao pequena, mensuravel e executavel ainda hoje.</p>
+        <div class="ebook-callout">
+          <strong>Regra simples:</strong>
+          <p>Uma pagina boa precisa levar o leitor a uma decisao clara. Evite excesso de teoria e finalize com uma acao verificavel.</p>
+        </div>
         <div class="gamma-grid">
           <div class="gamma-feature"><strong>Passo 1</strong><br/>Defina o problema principal.</div>
           <div class="gamma-feature"><strong>Passo 2</strong><br/>Escolha uma acao simples.</div>

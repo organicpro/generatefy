@@ -109,6 +109,322 @@ const APP_MODELS = [
 
 const EBOOK_WAVE_COUNT = 10;
 
+const EBOOK_THEME_CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap');
+
+  * { box-sizing: border-box; }
+  body { font-family: 'Manrope', sans-serif; background: #eef0f4; color: #111827; }
+  .content, .ebook-content {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px 0;
+  }
+
+  .gamma-card {
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.96), rgba(248,250,252,0.92)),
+      radial-gradient(circle at 94% 10%, rgba(124,58,237,0.12), transparent 32%);
+    border-radius: 34px;
+    padding: clamp(34px, 5vw, 72px);
+    box-shadow: 0 34px 90px rgba(15,23,42,0.14), inset 0 1px 0 rgba(255,255,255,0.86);
+    border: 1px solid rgba(15,23,42,0.08);
+    position: relative;
+    overflow: hidden;
+    color: #111827;
+  }
+
+  .gamma-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 10px;
+    background: linear-gradient(180deg, #7c3aed, #06b6d4, #f59e0b);
+    opacity: 0.92;
+  }
+
+  .gamma-card::after {
+    content: "";
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    right: -140px;
+    top: -150px;
+    border-radius: 999px;
+    background: radial-gradient(circle, rgba(124,58,237,0.18), transparent 68%);
+    pointer-events: none;
+  }
+
+  .gamma-card-dark {
+    background:
+      radial-gradient(circle at 82% 14%, rgba(14,165,233,0.24), transparent 32%),
+      radial-gradient(circle at 16% 92%, rgba(168,85,247,0.22), transparent 30%),
+      linear-gradient(135deg, #09090b 0%, #111827 54%, #020617 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  .gamma-card-primary {
+    background:
+      radial-gradient(circle at 78% 18%, rgba(250,204,21,0.26), transparent 24%),
+      radial-gradient(circle at 16% 80%, rgba(6,182,212,0.24), transparent 30%),
+      linear-gradient(135deg, #0f172a 0%, #3b0764 50%, #111827 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255,255,255,0.16);
+  }
+
+  .ebook-cover {
+    min-height: 860px;
+    justify-content: space-between !important;
+  }
+
+  .ebook-cover::before {
+    width: 12px;
+    background: linear-gradient(180deg, #facc15, #a855f7, #06b6d4);
+  }
+
+  .ebook-content h1, .ebook-content h2, .ebook-content h3,
+  .content h1, .content h2, .content h3 {
+    color: inherit !important;
+    font-family: 'Space Grotesk', 'Manrope', sans-serif;
+    letter-spacing: -0.045em;
+    position: relative;
+    z-index: 1;
+  }
+
+  .ebook-content h1, .content h1 {
+    font-size: clamp(3.4rem, 8vw, 6.8rem);
+    font-weight: 700;
+    line-height: 0.94;
+    margin: 0 0 1.5rem;
+    max-width: 900px;
+  }
+
+  .ebook-content h2, .content h2 {
+    font-size: clamp(2.3rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    margin: 0 0 1.35rem;
+    max-width: 880px;
+  }
+
+  .ebook-content h3, .content h3 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
+  }
+
+  .ebook-content p, .ebook-content span, .ebook-content li,
+  .content p, .content span, .content li {
+    color: inherit !important;
+    font-size: 1.08rem;
+    line-height: 1.78;
+    margin-bottom: 1.15rem;
+    opacity: 0.88;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-subtitle {
+    font-size: clamp(1.28rem, 2.4vw, 1.9rem) !important;
+    max-width: 760px;
+    opacity: 0.88 !important;
+  }
+
+  .page-kicker {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(124,58,237,0.12);
+    border: 1px solid rgba(124,58,237,0.22);
+    color: #7c3aed;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 1.4rem;
+    position: relative;
+    z-index: 2;
+  }
+
+  .gamma-card-dark .page-kicker,
+  .gamma-card-primary .page-kicker {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.14);
+    color: #e9d5ff;
+  }
+
+  .cover-badge-row, .ebook-metric-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 26px 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ebook-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 11px 15px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: inherit;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .ebook-metric {
+    flex: 1 1 190px;
+    padding: 22px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(14px);
+  }
+
+  .ebook-metric strong {
+    display: block;
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .gamma-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-top: 26px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .gamma-feature {
+    background: rgba(15,23,42,0.045);
+    padding: 24px;
+    border-radius: 24px;
+    border: 1px solid rgba(15,23,42,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.72);
+  }
+
+  .gamma-feature strong {
+    display: inline-block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .gamma-card-dark .gamma-feature,
+  .gamma-card-primary .gamma-feature {
+    background: rgba(255,255,255,0.075);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .ebook-callout {
+    margin: 28px 0;
+    padding: 26px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.1));
+    border: 1px solid rgba(124,58,237,0.2);
+    position: relative;
+    z-index: 2;
+  }
+
+  .gamma-card-dark .ebook-callout,
+  .gamma-card-primary .ebook-callout {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.16);
+  }
+
+  .ebook-toc, .ebook-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    position: relative;
+    z-index: 2;
+  }
+
+  .ebook-toc li, .ebook-list li {
+    padding: 18px 20px;
+    border-radius: 20px;
+    background: rgba(15,23,42,0.045);
+    border: 1px solid rgba(15,23,42,0.08);
+    margin: 0;
+  }
+
+  .gamma-card-dark .ebook-toc li,
+  .gamma-card-dark .ebook-list li,
+  .gamma-card-primary .ebook-toc li,
+  .gamma-card-primary .ebook-list li {
+    background: rgba(255,255,255,0.075);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  .page-footer {
+    margin-top: auto;
+    font-size: 0.78rem !important;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.62;
+    position: relative;
+    z-index: 2;
+  }
+
+  .gamma-page {
+    min-height: 780px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    page-break-after: always;
+  }
+
+  @media (max-width: 760px) {
+    .content, .ebook-content { gap: 18px; padding: 16px 0; }
+    .gamma-card { border-radius: 24px; padding: 30px; }
+    .gamma-page { min-height: auto; }
+    .ebook-content h1, .content h1 { font-size: 3.1rem; }
+    .ebook-content h2, .content h2 { font-size: 2.2rem; }
+  }
+
+  @media print {
+    .no-print { display: none; }
+    body {
+      background: #ffffff !important;
+      color: #111827 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .content {
+      max-width: none;
+      padding: 0;
+      gap: 0;
+    }
+    .gamma-card {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      border: none !important;
+      min-height: 100vh;
+      margin: 0 !important;
+      padding: 4.6rem !important;
+      page-break-after: always;
+    }
+  }
+`;
+
 const escapeHtml = (value: unknown) =>
   String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -118,7 +434,14 @@ const escapeHtml = (value: unknown) =>
     .replace(/'/g, '&#039;');
 
 const buildEbookFrontMatter = (content: any, niche: string, targetAudience: string, authorName: string) => {
-  const structure = Array.isArray(content?.structure) ? content.structure : [];
+  const structure = Array.isArray(content?.structure) && content.structure.length
+    ? content.structure
+    : [
+        'Diagnostico do problema central',
+        'Metodo pratico de implementacao',
+        'Rotina de aplicacao semanal',
+        'Checklist de evolucao',
+      ];
   const title = escapeHtml(content?.title || 'Ebook Generatefy');
   const subtitle = escapeHtml(content?.subtitle || 'Guia pratico para transformar conhecimento em resultado.');
   const description = escapeHtml(content?.description || '');
@@ -129,19 +452,33 @@ const buildEbookFrontMatter = (content: any, niche: string, targetAudience: stri
   return `
     <section class="gamma-page gamma-card-primary ebook-cover">
       <div class="page-kicker">EBOOK PREMIUM</div>
+      <div class="cover-badge-row">
+        <span class="ebook-pill">Guia pratico</span>
+        <span class="ebook-pill">Plano de acao</span>
+        <span class="ebook-pill">Edicao ${new Date().getFullYear()}</span>
+      </div>
       <h1>${title}</h1>
       <p class="cover-subtitle">${subtitle}</p>
+      <div class="ebook-metric-row">
+        <div class="ebook-metric"><strong>20</strong><span>capitulos estruturados</span></div>
+        <div class="ebook-metric"><strong>10</strong><span>ondas de conteudo</span></div>
+        <div class="ebook-metric"><strong>100%</strong><span>orientado a execucao</span></div>
+      </div>
       <div class="gamma-grid">
         <div class="gamma-feature"><strong>Nicho</strong><br/>${nicheLabel}</div>
         <div class="gamma-feature"><strong>Publico</strong><br/>${audience}</div>
       </div>
-      <p class="page-footer">Edicao Generatefy • ${author} • ${new Date().getFullYear()}</p>
+      <p class="page-footer">Edicao Generatefy &bull; ${author} &bull; ${new Date().getFullYear()}</p>
     </section>
 
     <section class="gamma-page gamma-card">
       <div class="page-kicker">PAGINA 02</div>
       <h2>Como usar este material</h2>
       <p>${description}</p>
+      <div class="ebook-callout">
+        <strong>Promessa do material:</strong>
+        <p>Transformar conhecimento solto em uma sequencia clara de decisoes, acoes e revisoes para o leitor sair da teoria e chegar na execucao.</p>
+      </div>
       <div class="gamma-grid">
         <div class="gamma-feature"><strong>Leia com foco:</strong><br/>Separe um bloco de tempo para absorver cada capitulo sem pressa.</div>
         <div class="gamma-feature"><strong>Aplique em seguida:</strong><br/>Cada capitulo foi pensado para virar uma acao pratica no mesmo dia.</div>
@@ -154,7 +491,7 @@ const buildEbookFrontMatter = (content: any, niche: string, targetAudience: stri
       <div class="page-kicker">PAGINA 03</div>
       <h2>Sumario executivo</h2>
       <p>Este ebook combina estrategia, clareza e plano de acao. Abaixo estao os pilares que guiam a jornada:</p>
-      <ol class="ebook-list">
+      <ol class="ebook-toc">
         ${structure.map((item: string, index: number) => `<li><strong>${String(index + 1).padStart(2, '0')}.</strong> ${escapeHtml(item)}</li>`).join('')}
       </ol>
     </section>
@@ -169,6 +506,10 @@ const buildEbookFrontMatter = (content: any, niche: string, targetAudience: stri
         <div class="gamma-feature"><strong>Resultado</strong><br/>Clareza para executar, medir e evoluir sem depender de improviso.</div>
         <div class="gamma-feature"><strong>Proximo passo</strong><br/>Um plano simples para colocar tudo em movimento.</div>
       </div>
+      <div class="ebook-callout">
+        <strong>Modo de leitura recomendado:</strong>
+        <p>Leia um capitulo, execute uma acao pequena, registre o aprendizado e avance. O valor do ebook aparece na aplicacao, nao apenas na leitura.</p>
+      </div>
     </section>
   `;
 };
@@ -178,6 +519,10 @@ const buildFallbackEbookWave = (waveTitle: string, index: number, generatedTitle
     <div class="page-kicker">CAPITULO ${index + 1}</div>
     <h2>${escapeHtml(waveTitle)}</h2>
     <p>Esta secao aprofunda uma etapa essencial do metodo ${escapeHtml(generatedTitle)} com foco em entendimento, aplicacao e consistencia.</p>
+    <div class="ebook-callout">
+      <strong>Objetivo desta etapa:</strong>
+      <p>Criar clareza suficiente para o leitor transformar a ideia principal em uma decisao simples e uma acao executavel.</p>
+    </div>
   </section>
   <section class="gamma-page gamma-card">
     <div class="page-kicker">PAGINA PRATICA</div>
@@ -325,23 +670,30 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             TAREFA: Escrever a ONDA ${i+1} que compreende: ${wave.title}.
             Publico alvo: ${targetAudience || 'pessoas interessadas no tema'}.
             IMPORTANTE: Gere PAGINAS reais de ebook, nao apenas capitulos ou topicos.
-            Cada pagina deve ser uma secao HTML com classe "gamma-page" e marcador "PAGINA".
+            Cada pagina deve ser uma secao HTML completa com classe "gamma-page" junto do estilo visual, exemplo: <section class="gamma-page gamma-card">...</section>.
             Para cada capitulo, gere abertura, conteudo profundo, exemplos e pagina pratica.
             Esta onda deve ter entre 5 e 8 paginas completas, com paragrafos, listas, grids e exercicios.
             
-            DIRETRIZES DE DESIGN (ESTILO GAMMA APP):
-            - O conteúdo deve ser estruturado em "CARDS" independentes.
-            - Cada card deve ser uma seção <section class="gamma-card">.
+            DIRETRIZES DE DESIGN PREMIUM:
+            - O conteudo deve parecer um ebook vendido, nao um documento simples.
+            - Cada pagina deve ser independente, com bastante respiro visual e hierarquia.
             - Alterne entre designs de cards usando as classes: 
-              - "gamma-card" (Padrão, fundo branco)
-              - "gamma-card-dark" (Elegante, fundo escuro)
-              - "gamma-card-primary" (Destaque, fundo gradiente escuro)
+              - "gamma-card" (pagina clara premium)
+              - "gamma-card-dark" (pagina escura elegante)
+              - "gamma-card-primary" (capa, abertura ou conclusao com gradiente)
+            - Use componentes visuais ja estilizados quando fizer sentido:
+              - <div class="page-kicker">PAGINA 05</div>
+              - <div class="ebook-callout"><strong>Ideia central:</strong><p>...</p></div>
+              - <div class="gamma-grid"><div class="gamma-feature"><strong>...</strong><br/>...</div></div>
+              - <ol class="ebook-list"><li><strong>01.</strong> ...</li></ol>
+              - <div class="ebook-metric-row"><div class="ebook-metric"><strong>3x</strong><span>...</span></div></div>
             
             REQUISITOS DE CONTEÚDO PARA ESTA ONDA:
             - Escreva o conteúdo real e detalhado dos capítulos ${wave.start} e ${wave.end}.
             - Não economize no conhecimento técnico. Use listas, tabelas e grids.
             - Use a estrutura <div class="gamma-grid"> para comparar conceitos ou listar benefícios.
             - Dentro da grid, use <div class="gamma-feature"> para cada item.
+            - Inclua pelo menos um destaque "ebook-callout" por onda.
             
             ESTRUTURA DETALHADA DESTA ONDA:
             ${i === 0 ? `
@@ -413,28 +765,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
           <head>
             <title>${generatedContent?.title || 'Ebook'}</title>
             <script src="https://cdn.tailwindcss.com"></script>
-            <style>
-              @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-              @media print {
-                .no-print { display: none; }
-                body { background: #f4f4f5 !important; color: #18181b !important; -webkit-print-color-adjust: exact; }
-                .gamma-card { page-break-after: always; margin-bottom: 0 !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 4rem !important; }
-                .gamma-card-dark { background: #18181b !important; color: white !important; }
-                .gamma-card-primary { background: #18181b !important; color: white !important; }
-              }
-              body { font-family: 'Inter', sans-serif; background: #f4f4f5; color: #18181b; }
-              .content { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; padding: 2rem; }
-              .gamma-card { background: white; border-radius: 1.5rem; padding: 3rem; box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); border: 1px solid rgba(0,0,0,0.05); }
-              .gamma-card-dark { background: #18181b; color: white; }
-              .gamma-card-primary { background: linear-gradient(135deg, #18181b 0%, #27272a 100%); color: white; }
-              h1, h2, h3 { color: inherit !important; }
-              h1 { font-size: 4rem; font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -0.04em; }
-              h2 { font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
-              p, span, li { font-size: 1.125rem; line-height: 1.7; margin-bottom: 1.25rem; opacity: 0.9; color: inherit !important; }
-              .gamma-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
-              .gamma-feature { background: rgba(0,0,0,0.03); padding: 1.5rem; border-radius: 1rem; }
-              .gamma-card-dark .gamma-feature { background: rgba(255,255,255,0.05); }
-            </style>
+            <style>${EBOOK_THEME_CSS}</style>
           </head>
           <body>
             <div class="content">
@@ -532,70 +863,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
               ) : (
                 <div className="w-full h-full overflow-y-auto p-4 md:p-12 lg:p-20 bg-zinc-900/10 custom-scrollbar selection:bg-primary/30">
                   <div className="max-w-[1000px] mx-auto min-h-screen relative animate-in slide-in-from-bottom-8 duration-700 pb-32">
-                    <style>{`
-                      .ebook-content { 
-                        display: flex;
-                        flex-direction: column;
-                        gap: 24px;
-                        padding: 24px 0;
-                      }
-                      
-                      .gamma-card {
-                        background: #ffffff;
-                        border-radius: 24px;
-                        padding: 48px;
-                        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-                        border: 1px solid rgba(0,0,0,0.05);
-                        position: relative;
-                        overflow: hidden;
-                        color: #18181b;
-                      }
-
-                      .gamma-card-dark {
-                        background: #09090b !important;
-                        color: #ffffff !important;
-                        border: 1px solid rgba(255,255,255,0.1);
-                      }
-                      
-                      .gamma-card-primary {
-                        background: linear-gradient(135deg, #18181b 0%, #27272a 100%) !important;
-                        color: #ffffff !important;
-                        border: 1px solid rgba(168,85,247,0.3);
-                      }
-
-                      .ebook-content h1, .ebook-content h2, .ebook-content h3 { color: inherit !important; font-family: 'Inter', sans-serif; }
-                      .ebook-content h1 { font-size: 4rem; font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -0.04em; }
-                      .ebook-content h2 { font-size: 2.25rem; font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
-                      .ebook-content h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
-                      .ebook-content p, .ebook-content span, .ebook-content li { color: inherit !important; font-size: 1.125rem; line-height: 1.7; margin-bottom: 1.25rem; opacity: 0.9; }
-                      
-                      .gamma-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                        gap: 24px;
-                        margin-top: 24px;
-                      }
-
-                      .gamma-feature {
-                        background: rgba(0,0,0,0.03);
-                        padding: 24px;
-                        border-radius: 16px;
-                        border: 1px solid rgba(0,0,0,0.05);
-                      }
-
-                      .gamma-card-dark .gamma-feature {
-                        background: rgba(255,255,255,0.03);
-                        border: 1px solid rgba(255,255,255,0.05);
-                      }
-
-                      /* Page break for printing */
-                      .gamma-card { page-break-after: always; }
-                      .gamma-page { min-height: 760px; display: flex; flex-direction: column; justify-content: center; }
-                      .page-kicker { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.55; margin-bottom: 1.25rem; }
-                      .ebook-list { display: grid; gap: 0.8rem; padding-left: 1.2rem; }
-                      .cover-subtitle { font-size: 1.5rem !important; max-width: 760px; }
-                      .page-footer { margin-top: auto; font-size: 0.85rem !important; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.55; }
-                    `}</style>
+                    <style>{EBOOK_THEME_CSS}</style>
                     <div className="ebook-content" dangerouslySetInnerHTML={{ __html: productHtml }} />
                     <div className="mt-32 pt-16 border-t border-zinc-100 text-zinc-500 text-[10px] italic text-center font-sans tracking-widest uppercase">
                       Documento Identificado • Generatefy Content Engine v3 • {new Date().getFullYear()}
