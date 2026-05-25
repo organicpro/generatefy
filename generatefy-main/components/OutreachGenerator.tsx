@@ -68,6 +68,7 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
 
       const text = await generateGroqText({
         prompt,
+        customApiKey: identity.groqApiKey || identity.apiKey,
         temperature: 0.35,
         maxTokens: 2048,
       });

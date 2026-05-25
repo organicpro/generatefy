@@ -1214,7 +1214,7 @@ export const generateWebsite = async (
   partialUpdate?: { sectionId: string, oldHtml: string },
   groqApiKey?: string
 ): Promise<string> => {
-  const activeGroqKey = '';
+  const activeGroqKey = groqApiKey?.trim() || customApiKey?.trim() || '';
   const activeKey = activeGroqKey;
 
   // Check for OpenAI keys being used where a Groq key is expected.
@@ -1386,7 +1386,7 @@ export const generateSocialPost = async (
   customApiKey?: string,
   aspectRatio: 'square' | 'story' = 'square'
 ): Promise<string> => {
-  const activeKey = '';
+  const activeKey = customApiKey?.trim() || '';
   const ai = new GroqCompatAI({ apiKey: activeKey });
   const prompt = `
     [ACT AS AWARD-WINNING ART DIRECTOR]

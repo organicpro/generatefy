@@ -52,7 +52,7 @@ export default function PostStudio({ identity, onSave, isSaving, saveSuccess }: 
     setStudioError(null);
     setPostHtml('');
     try {
-      const htmlSnippet = await generateSocialPost(description, activeStyle, undefined, aspectRatio);
+      const htmlSnippet = await generateSocialPost(description, activeStyle, identity.groqApiKey || identity.apiKey, aspectRatio);
       
       if (htmlSnippet && htmlSnippet.trim().length > 5) {
         const height = aspectRatio === 'square' ? '1080px' : '1920px';

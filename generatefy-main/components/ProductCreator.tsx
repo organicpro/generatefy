@@ -246,6 +246,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
 
       const text = await generateGroqText({
         prompt,
+        customApiKey: identity.groqApiKey || identity.apiKey,
         json: true,
         temperature: 0.3,
         maxTokens: 4096,
@@ -366,6 +367,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
           try {
             const text = await generateGroqText({
               prompt,
+              customApiKey: identity.groqApiKey || identity.apiKey,
               temperature: 0.35,
               maxTokens: 12000,
             });

@@ -279,7 +279,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleGenerate = useCallback(async (description: string) => {
-    const activeApiKey = '';
+    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
     
     // Cooldown apenas se não tiver chave própria (para evitar abusos na chave do sistema)
     if (cooldown && !activeApiKey) return;
@@ -298,7 +298,7 @@ const App: React.FC = () => {
       
       // Para a IA, limpamos o efeito de profundidade (isForAI = true) para evitar erros de integridade
       const cleanContext = getCleanHtml(generatedHtml, true);
-      const html = await generateWebsite(description, cleanContext || undefined, undefined, activePreset);
+      const html = await generateWebsite(description, cleanContext || undefined, activeApiKey || undefined, activePreset, undefined, identity.groqApiKey);
       const lowerHtml = (html || "").toLowerCase();
       if (html && (lowerHtml.includes('</html>') || lowerHtml.includes('</body>') || lowerHtml.includes('<div') || lowerHtml.includes('<section'))) {
         setGeneratedHtml(html);
@@ -355,7 +355,7 @@ const App: React.FC = () => {
     } finally {
       if (!activeApiKey) setTimeout(() => setCooldown(false), 5000); // Reduced cooldown
     }
-  }, [cooldown, activePreset, generatedHtml]);
+  }, [cooldown, identity.apiKey, identity.groqApiKey, activePreset, generatedHtml]);
 
   const handleWorkflowNext = (step?: number) => {
     const nextStep = step ?? workflowStep + 1;
@@ -411,13 +411,13 @@ const App: React.FC = () => {
   }, []);
 
   const handleRegenerateSection = useCallback(async (sectionId: string, oldHtml: string, prompt: string) => {
-    const activeApiKey = '';
+    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
     const prev = generatedHtml;
     setStatus(GenerationStatus.GENERATING);
     setError('');
     try {
       const cleanContext = getCleanHtml(generatedHtml);
-      const fullHtml = await generateWebsite(prompt, cleanContext, undefined, activePreset, { sectionId, oldHtml });
+      const fullHtml = await generateWebsite(prompt, cleanContext, activeApiKey || undefined, activePreset, { sectionId, oldHtml }, identity.groqApiKey);
       const lowerHtml = (fullHtml || "").toLowerCase();
       if (fullHtml && (lowerHtml.includes('</html>') || lowerHtml.includes('</body>') || lowerHtml.includes('<div'))) {
         setGeneratedHtml(fullHtml);
@@ -445,7 +445,7 @@ const App: React.FC = () => {
       setStatus(GenerationStatus.ERROR);
       setGeneratedHtml(prev);
     }
-  }, [generatedHtml, activePreset]);
+  }, [generatedHtml, identity.apiKey, identity.groqApiKey, activePreset]);
 
   const handleReset = () => { setCurrentView('niche-mining'); setWorkflowStep(1); setStatus(GenerationStatus.IDLE); setGeneratedHtml(''); setHistory([]); setLastDescription(''); setCooldown(false); setCurrentProjectId(null); setCurrentProduct(null); setMinedNiche(null); };
 
@@ -500,7 +500,7 @@ const App: React.FC = () => {
       case 'niches': return <NicheExplorer onSelectNiche={handleGenerate} />;
       case 'opportunities': return <OpportunityMarket onSelect={handleGenerate} />;
       case 'intelligence': return <IntelligenceCenter currentProjectDesc={lastDescription} identity={identity} />;
-      case 'prospector': return <LeadProspector onSelectLead={handleGenerate} />;
+      case 'prospector': return <LeadProspector onSelectLead={handleGenerate} customApiKey={identity.groqApiKey || identity.apiKey} />;
       case 'projects': return <ProjectManager 
         projects={savedProjects} 
         onLoadProject={(p: SavedProject) => { 

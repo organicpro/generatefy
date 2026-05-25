@@ -31,6 +31,7 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
           generateContent: async ({ contents }: any) => {
             const text = await generateGroqText({
               prompt: String(contents),
+              customApiKey,
               temperature: 0.35,
               maxTokens: 4096,
             });

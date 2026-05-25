@@ -44,6 +44,30 @@ type GroqChatBody = {
   apiKey?: string;
 };
 
+function getGroqApiKey(requestKey?: string) {
+  return (
+    process.env.GROQ_API_KEY?.trim() ||
+    process.env.VITE_GROQ_API_KEY?.trim() ||
+    process.env.GROQ_KEY?.trim() ||
+    process.env.API_KEY?.trim() ||
+    requestKey?.trim() ||
+    ""
+  );
+}
+
+function getGroqModelCandidates(requestedModel?: string) {
+  return Array.from(
+    new Set(
+      [
+        requestedModel?.trim(),
+        process.env.GROQ_MODEL?.trim(),
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+      ].filter(Boolean) as string[]
+    )
+  );
+}
+
 let trendingCache: { expiresAt: number; payload: TrendingNichePayload } | null = null;
 
 const fallbackTrendingNiches: TrendingNiche[] = [
@@ -392,9 +416,8 @@ async function startServer() {
 
   app.post("/api/groq/chat", async (req: Request<unknown, unknown, GroqChatBody>, res: Response) => {
     const messages = Array.isArray(req.body.messages) ? req.body.messages : [];
-    const serverGroqKey = process.env.GROQ_API_KEY?.trim();
-    const apiKey = serverGroqKey || req.body.apiKey?.trim();
-    const model = req.body.model?.trim() || process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
+    const apiKey = getGroqApiKey(req.body.apiKey);
+    const modelCandidates = getGroqModelCandidates(req.body.model);
 
     if (!apiKey) {
       res.status(400).json({
@@ -410,34 +433,47 @@ async function startServer() {
     }
 
     try {
-      const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: Number.isFinite(req.body.temperature) ? req.body.temperature : 0.3,
-          max_completion_tokens: req.body.maxTokens || 8192,
-          response_format: req.body.responseFormat,
-        }),
-      });
+      let lastStatus = 502;
+      let lastPayload: any = {};
 
-      const data: any = await groqResponse.json().catch(() => ({}));
-
-      if (!groqResponse.ok) {
-        res.status(groqResponse.status).json({
-          error: data?.error?.code || "GROQ_REQUEST_FAILED",
-          message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
+      for (const model of modelCandidates) {
+        const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: Number.isFinite(req.body.temperature) ? req.body.temperature : 0.3,
+            max_completion_tokens: Math.min(req.body.maxTokens || 8192, 12000),
+            response_format: req.body.responseFormat,
+          }),
         });
-        return;
+
+        const data: any = await groqResponse.json().catch(() => ({}));
+
+        if (groqResponse.ok) {
+          res.json({
+            text: data?.choices?.[0]?.message?.content || "",
+            model: data?.model || model,
+          });
+          return;
+        }
+
+        lastStatus = groqResponse.status;
+        lastPayload = data;
+        console.error("Groq model attempt failed:", {
+          model,
+          status: groqResponse.status,
+          error: data?.error?.message || data?.error || data,
+        });
       }
 
-      res.json({
-        text: data?.choices?.[0]?.message?.content || "",
-        model: data?.model || model,
+      res.status(lastStatus).json({
+        error: lastPayload?.error?.code || "GROQ_REQUEST_FAILED",
+        message: "Nao foi possivel gerar agora. Tente novamente em alguns instantes.",
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
