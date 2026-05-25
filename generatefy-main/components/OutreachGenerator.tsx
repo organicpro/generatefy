@@ -68,7 +68,6 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
 
       const text = await generateGroqText({
         prompt,
-        customApiKey: identity.groqApiKey || identity.apiKey,
         temperature: 0.35,
         maxTokens: 2048,
       });
@@ -76,7 +75,7 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
       setScript(text || "");
     } catch (e) {
       console.error(e);
-      setScript('Erro ao gerar script. Verifique sua conexão e chave API.');
+      setScript('Erro ao gerar script. Verifique se GROQ_API_KEY esta configurada no Railway.');
     } finally {
       setLoading(false);
     }

@@ -146,7 +146,7 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
       if (errorMsg.includes("404") || errorMsg.includes("NOT_FOUND")) {
         setError("Erro de Modelo: a Groq recusou o modelo atual. Verifique GROQ_MODEL ou tente novamente em alguns segundos.");
       } else if (errorMsg.includes("403")) {
-        setError("Acesso Negado: Sua chave API não tem permissão para usar o Google Maps Grounding. Verifique no Google Cloud Console.");
+        setError("Acesso negado pela Groq. Verifique se GROQ_API_KEY esta correta no Railway e faca redeploy.");
       } else {
         setError("O motor de busca falhou ao conectar com o satélite. Verifique sua conexão.");
       }

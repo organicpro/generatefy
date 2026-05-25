@@ -398,7 +398,7 @@ async function startServer() {
     if (!apiKey) {
       res.status(400).json({
         error: "GROQ_API_KEY_MISSING",
-        message: "Configure GROQ_API_KEY no Railway ou informe uma chave Groq no perfil.",
+        message: "Configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.",
       });
       return;
     }

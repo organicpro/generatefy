@@ -107,6 +107,91 @@ const APP_MODELS = [
   }
 ];
 
+const EBOOK_WAVE_COUNT = 10;
+
+const escapeHtml = (value: unknown) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+const buildEbookFrontMatter = (content: any, niche: string, targetAudience: string, authorName: string) => {
+  const structure = Array.isArray(content?.structure) ? content.structure : [];
+  const title = escapeHtml(content?.title || 'Ebook Generatefy');
+  const subtitle = escapeHtml(content?.subtitle || 'Guia pratico para transformar conhecimento em resultado.');
+  const description = escapeHtml(content?.description || '');
+  const audience = escapeHtml(targetAudience || 'Leitores que buscam evoluir com clareza e acao.');
+  const nicheLabel = escapeHtml(niche || 'Produto digital');
+  const author = escapeHtml(authorName || 'Generatefy');
+
+  return `
+    <section class="gamma-page gamma-card-primary ebook-cover">
+      <div class="page-kicker">EBOOK PREMIUM</div>
+      <h1>${title}</h1>
+      <p class="cover-subtitle">${subtitle}</p>
+      <div class="gamma-grid">
+        <div class="gamma-feature"><strong>Nicho</strong><br/>${nicheLabel}</div>
+        <div class="gamma-feature"><strong>Publico</strong><br/>${audience}</div>
+      </div>
+      <p class="page-footer">Edicao Generatefy • ${author} • ${new Date().getFullYear()}</p>
+    </section>
+
+    <section class="gamma-page gamma-card">
+      <div class="page-kicker">PAGINA 02</div>
+      <h2>Como usar este material</h2>
+      <p>${description}</p>
+      <div class="gamma-grid">
+        <div class="gamma-feature"><strong>Leia com foco:</strong><br/>Separe um bloco de tempo para absorver cada capitulo sem pressa.</div>
+        <div class="gamma-feature"><strong>Aplique em seguida:</strong><br/>Cada capitulo foi pensado para virar uma acao pratica no mesmo dia.</div>
+        <div class="gamma-feature"><strong>Revise semanalmente:</strong><br/>Volte aos checklists para medir evolucao e ajustar o plano.</div>
+        <div class="gamma-feature"><strong>Personalize:</strong><br/>Adapte exemplos e exercicios para sua rotina, publico e objetivo.</div>
+      </div>
+    </section>
+
+    <section class="gamma-page gamma-card-dark">
+      <div class="page-kicker">PAGINA 03</div>
+      <h2>Sumario executivo</h2>
+      <p>Este ebook combina estrategia, clareza e plano de acao. Abaixo estao os pilares que guiam a jornada:</p>
+      <ol class="ebook-list">
+        ${structure.map((item: string, index: number) => `<li><strong>${String(index + 1).padStart(2, '0')}.</strong> ${escapeHtml(item)}</li>`).join('')}
+      </ol>
+    </section>
+
+    <section class="gamma-page gamma-card">
+      <div class="page-kicker">PAGINA 04</div>
+      <h2>Mapa da transformacao</h2>
+      <p>Antes dos capitulos, entenda a promessa central: sair de uma situacao confusa ou travada para um processo simples, organizado e aplicavel.</p>
+      <div class="gamma-grid">
+        <div class="gamma-feature"><strong>Ponto de partida</strong><br/>Dores, duvidas e bloqueios que impedem o progresso.</div>
+        <div class="gamma-feature"><strong>Metodo</strong><br/>Conceitos práticos explicados com exemplos, exercicios e checklists.</div>
+        <div class="gamma-feature"><strong>Resultado</strong><br/>Clareza para executar, medir e evoluir sem depender de improviso.</div>
+        <div class="gamma-feature"><strong>Proximo passo</strong><br/>Um plano simples para colocar tudo em movimento.</div>
+      </div>
+    </section>
+  `;
+};
+
+const buildFallbackEbookWave = (waveTitle: string, index: number, generatedTitle: string) => `
+  <section class="gamma-page gamma-card-dark">
+    <div class="page-kicker">CAPITULO ${index + 1}</div>
+    <h2>${escapeHtml(waveTitle)}</h2>
+    <p>Esta secao aprofunda uma etapa essencial do metodo ${escapeHtml(generatedTitle)} com foco em entendimento, aplicacao e consistencia.</p>
+  </section>
+  <section class="gamma-page gamma-card">
+    <div class="page-kicker">PAGINA PRATICA</div>
+    <h2>Aplicacao guiada</h2>
+    <p>Use esta pagina como roteiro de execucao: identifique o problema principal, escolha uma acao pequena, defina um prazo curto e registre o resultado.</p>
+    <div class="gamma-grid">
+      <div class="gamma-feature"><strong>Diagnostico</strong><br/>O que precisa mudar agora?</div>
+      <div class="gamma-feature"><strong>Acao</strong><br/>Qual atitude simples sera feita hoje?</div>
+      <div class="gamma-feature"><strong>Metrica</strong><br/>Como voce vai saber que evoluiu?</div>
+      <div class="gamma-feature"><strong>Revisao</strong><br/>O que deve ser ajustado na proxima tentativa?</div>
+    </div>
+  </section>
+`;
+
 export default function ProductCreator({ onProductCreated, identity, onOpenIdentity, seedNiche }: ProductCreatorProps) {
   const [loading, setLoading] = useState(false);
   const [selectedType, setSelectedType] = useState<ProductType>('ebook');
@@ -161,7 +246,6 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
 
       const text = await generateGroqText({
         prompt,
-        customApiKey: identity.groqApiKey || identity.apiKey,
         json: true,
         temperature: 0.3,
         maxTokens: 4096,
@@ -173,7 +257,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
       setProductHtml(''); 
     } catch (error) {
       console.error("Generator error:", error);
-      setErrorMessage("Erro ao validar oferta. Revise sua chave Groq ou a variavel GROQ_API_KEY no Railway.");
+      setErrorMessage("Erro ao validar oferta. Se aparecer falta de chave, configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.");
     } finally {
       setLoading(false);
     }
@@ -184,6 +268,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
     setGeneratingContent(true);
     setProductHtml('');
     setCurrentWave(0);
+    setErrorMessage('');
     
     try {
       if (selectedType === 'app') {
@@ -212,7 +297,8 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         setProductHtml(appHtml);
         setIsPreviewOpen(true);
       } else {
-        let fullHtml = '';
+        let fullHtml = buildEbookFrontMatter(generatedContent, niche, targetAudience, identity.name);
+        setProductHtml(fullHtml);
         const waves = [
           { title: 'Capa e Sumário Executivo', start: 0, end: 0 },
           { title: 'Capítulos 1 e 2: A Fundação', start: 1, end: 2 },
@@ -236,6 +322,11 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             Você está criando o e-book PREMIUM (Estilo Gamma App / Slidedeck Moderno): "${generatedContent.title}".
             
             TAREFA: Escrever a ONDA ${i+1} que compreende: ${wave.title}.
+            Publico alvo: ${targetAudience || 'pessoas interessadas no tema'}.
+            IMPORTANTE: Gere PAGINAS reais de ebook, nao apenas capitulos ou topicos.
+            Cada pagina deve ser uma secao HTML com classe "gamma-page" e marcador "PAGINA".
+            Para cada capitulo, gere abertura, conteudo profundo, exemplos e pagina pratica.
+            Esta onda deve ter entre 5 e 8 paginas completas, com paragrafos, listas, grids e exercicios.
             
             DIRETRIZES DE DESIGN (ESTILO GAMMA APP):
             - O conteúdo deve ser estruturado em "CARDS" independentes.
@@ -272,22 +363,30 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             - Retorne APENAS o HTML puro dos cards. Não use <html>, <head> ou <body>.
           `;
 
-          const text = await generateGroqText({
-            prompt,
-            customApiKey: identity.groqApiKey || identity.apiKey,
-            temperature: 0.35,
-            maxTokens: 8192,
-          });
+          try {
+            const text = await generateGroqText({
+              prompt,
+              temperature: 0.35,
+              maxTokens: 12000,
+            });
 
-          const waveHtml = (text || "").replace(/```html|```/gi, '').trim();
-          fullHtml += `\n<!-- ONDA ${i+1} -->\n` + waveHtml;
+            const waveHtml = (text || "").replace(/```html|```/gi, '').trim();
+            if (!waveHtml || waveHtml.length < 300) {
+              throw new Error('Onda retornou conteudo curto demais.');
+            }
+            fullHtml += `\n<!-- ONDA ${i+1}: ${wave.title} -->\n` + waveHtml;
+          } catch (waveError) {
+            console.error(`Erro na onda ${i + 1}:`, waveError);
+            fullHtml += `\n<!-- ONDA ${i+1}: fallback seguro -->\n` + buildFallbackEbookWave(wave.title, i, generatedContent.title || 'Ebook');
+            setErrorMessage('Uma parte do ebook oscilou na IA, mas gerei paginas de apoio automaticamente para nao interromper o material.');
+          }
           setProductHtml(fullHtml);
         }
         setIsPreviewOpen(true);
       }
     } catch (error) {
       console.error("Content generation error:", error);
-      alert("Erro ao materializar conteúdo. Tente novamente.");
+      setErrorMessage(`Erro ao materializar conteudo: ${error instanceof Error ? error.message : 'Tente novamente.'}`);
     } finally {
       setGeneratingContent(false);
       setCurrentWave(0);
@@ -489,6 +588,11 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
 
                       /* Page break for printing */
                       .gamma-card { page-break-after: always; }
+                      .gamma-page { min-height: 760px; display: flex; flex-direction: column; justify-content: center; }
+                      .page-kicker { font-size: 0.72rem; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.55; margin-bottom: 1.25rem; }
+                      .ebook-list { display: grid; gap: 0.8rem; padding-left: 1.2rem; }
+                      .cover-subtitle { font-size: 1.5rem !important; max-width: 760px; }
+                      .page-footer { margin-top: auto; font-size: 0.85rem !important; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.55; }
                     `}</style>
                     <div className="ebook-content" dangerouslySetInnerHTML={{ __html: productHtml }} />
                     <div className="mt-32 pt-16 border-t border-zinc-100 text-zinc-500 text-[10px] italic text-center font-sans tracking-widest uppercase">
@@ -582,14 +686,6 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         {errorMessage && (
           <div className="rounded-[2rem] border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-sm font-semibold flex items-start justify-between gap-4 text-amber-100">
             <span>{errorMessage}</span>
-            {!identity.groqApiKey && !identity.apiKey && (
-              <button
-                onClick={onOpenIdentity}
-                className="shrink-0 px-4 py-2 rounded-xl bg-primary text-black text-[10px] font-black uppercase tracking-widest"
-              >
-                Configurar Groq
-              </button>
-            )}
           </div>
         )}
 
@@ -759,13 +855,13 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                       >
                         <div className="flex items-center gap-3">
                           {generatingContent ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                          {selectedType === 'ebook' ? (generatingContent ? `Materializando Onda ${currentWave}/11...` : 'Gerar Conteúdo (20+ Págs)') : (generatingContent ? `Montando App ${currentWave}/10...` : 'Gerar App Funcional')}
+                          {selectedType === 'ebook' ? (generatingContent ? `Materializando paginas ${currentWave}/${EBOOK_WAVE_COUNT}...` : 'Gerar Ebook Completo') : (generatingContent ? `Montando App ${currentWave}/10...` : 'Gerar App Funcional')}
                         </div>
                         {generatingContent && (
                           <div className="w-48 h-1 bg-black/10 rounded-full mt-2 overflow-hidden">
                             <div 
                               className="h-full bg-black/40 transition-all duration-500" 
-                              style={{ width: `${(currentWave / (selectedType === 'app' ? 10 : 11)) * 100}%` }} 
+                              style={{ width: `${(currentWave / (selectedType === 'app' ? 10 : EBOOK_WAVE_COUNT)) * 100}%` }} 
                             />
                           </div>
                         )}

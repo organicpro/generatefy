@@ -41,7 +41,6 @@ export default function IntelligenceCenter({ currentProjectDesc, identity }: Int
 
       const text = await generateGroqText({
         prompt,
-        customApiKey: identity.groqApiKey || identity.apiKey,
         json: true,
         temperature: 0.25,
         maxTokens: 4096,

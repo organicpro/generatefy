@@ -279,7 +279,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleGenerate = useCallback(async (description: string) => {
-    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
+    const activeApiKey = '';
     
     // Cooldown apenas se não tiver chave própria (para evitar abusos na chave do sistema)
     if (cooldown && !activeApiKey) return;
@@ -298,7 +298,7 @@ const App: React.FC = () => {
       
       // Para a IA, limpamos o efeito de profundidade (isForAI = true) para evitar erros de integridade
       const cleanContext = getCleanHtml(generatedHtml, true);
-      const html = await generateWebsite(description, cleanContext || undefined, activeApiKey, activePreset, undefined, identity.groqApiKey);
+      const html = await generateWebsite(description, cleanContext || undefined, undefined, activePreset);
       const lowerHtml = (html || "").toLowerCase();
       if (html && (lowerHtml.includes('</html>') || lowerHtml.includes('</body>') || lowerHtml.includes('<div') || lowerHtml.includes('<section'))) {
         setGeneratedHtml(html);
@@ -332,21 +332,21 @@ const App: React.FC = () => {
         const lowerError = errorMessage.toLowerCase();
         const isQuotaError = lowerError.includes('429') || lowerError.includes('quota') || lowerError.includes('resource_exhausted');
         
-        if (isQuotaError) {
-          errorMessage = "O limite de uso da inteligência artificial foi atingido. Por favor, aguarde alguns minutos ou use sua própria chave API nas configurações.";
+        if (lowerError.includes('groq_api_key')) {
+          errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variaveis do Railway e faca redeploy.";
+        } else if (isQuotaError) {
+          errorMessage = "O limite de uso da inteligência artificial foi atingido. Aguarde alguns minutos e tente novamente.";
         } else if (lowerError.includes('token') || lowerError.includes('limit') || lowerError.includes('context')) {
           errorMessage = "O site está muito grande para esta alteração. Tente remover algumas seções ou fazer pedidos mais específicos.";
         } else if (lowerError.includes('api key') || lowerError.includes('invalid_argument') || lowerError.includes('unauthorized')) {
-          errorMessage = "Problema com a chave de API. Verifique se a GROQ_API_KEY no Railway ou sua chave Groq nas configurações está correta.";
+          errorMessage = "Problema com a chave Groq do servidor. Verifique se GROQ_API_KEY está configurada no Railway e faça redeploy.";
         } else if (lowerError.includes('safety') || lowerError.includes('blocked')) {
           errorMessage = "O pedido foi bloqueado pelos filtros de segurança da IA. Tente reformular sua solicitação.";
         }
       }
       
-      // Se falhar por falta de chave, aí sim pedimos
       if (errorMessage === "API_KEY_MISSING") {
-        errorMessage = "Chave API ausente. Configure no seu perfil para continuar.";
-        setIsIdentityModalOpen(true);
+        errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variáveis do Railway e faça redeploy.";
       }
       
       setError(errorMessage);
@@ -355,7 +355,7 @@ const App: React.FC = () => {
     } finally {
       if (!activeApiKey) setTimeout(() => setCooldown(false), 5000); // Reduced cooldown
     }
-  }, [cooldown, identity.apiKey, identity.groqApiKey, activePreset, generatedHtml]);
+  }, [cooldown, activePreset, generatedHtml]);
 
   const handleWorkflowNext = (step?: number) => {
     const nextStep = step ?? workflowStep + 1;
@@ -411,13 +411,13 @@ const App: React.FC = () => {
   }, []);
 
   const handleRegenerateSection = useCallback(async (sectionId: string, oldHtml: string, prompt: string) => {
-    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
+    const activeApiKey = '';
     const prev = generatedHtml;
     setStatus(GenerationStatus.GENERATING);
     setError('');
     try {
       const cleanContext = getCleanHtml(generatedHtml);
-      const fullHtml = await generateWebsite(prompt, cleanContext, activeApiKey, activePreset, { sectionId, oldHtml }, identity.groqApiKey);
+      const fullHtml = await generateWebsite(prompt, cleanContext, undefined, activePreset, { sectionId, oldHtml });
       const lowerHtml = (fullHtml || "").toLowerCase();
       if (fullHtml && (lowerHtml.includes('</html>') || lowerHtml.includes('</body>') || lowerHtml.includes('<div'))) {
         setGeneratedHtml(fullHtml);
@@ -439,13 +439,13 @@ const App: React.FC = () => {
       }
 
       if (errorMessage === "API_KEY_MISSING") {
-        setIsIdentityModalOpen(true);
+        errorMessage = "Chave Groq ausente no servidor. Configure GROQ_API_KEY nas variáveis do Railway e faça redeploy.";
       }
       setError(errorMessage);
       setStatus(GenerationStatus.ERROR);
       setGeneratedHtml(prev);
     }
-  }, [generatedHtml, identity.apiKey, identity.groqApiKey, activePreset]);
+  }, [generatedHtml, activePreset]);
 
   const handleReset = () => { setCurrentView('niche-mining'); setWorkflowStep(1); setStatus(GenerationStatus.IDLE); setGeneratedHtml(''); setHistory([]); setLastDescription(''); setCooldown(false); setCurrentProjectId(null); setCurrentProduct(null); setMinedNiche(null); };
 
@@ -488,7 +488,7 @@ const App: React.FC = () => {
         onSave={handleSaveProject} 
         onRetry={() => handleGenerate(lastDescription)} 
         onOpenIdentity={() => setIsIdentityModalOpen(true)} 
-        isUsingCustomKey={!!identity.apiKey?.trim()} 
+        isUsingCustomKey={false} 
         isSaving={saveStatus === 'saving'} 
         saveSuccess={saveStatus === 'success'} 
         onRegenerateSection={handleRegenerateSection} 
@@ -500,7 +500,7 @@ const App: React.FC = () => {
       case 'niches': return <NicheExplorer onSelectNiche={handleGenerate} />;
       case 'opportunities': return <OpportunityMarket onSelect={handleGenerate} />;
       case 'intelligence': return <IntelligenceCenter currentProjectDesc={lastDescription} identity={identity} />;
-      case 'prospector': return <LeadProspector onSelectLead={handleGenerate} customApiKey={identity.apiKey} />;
+      case 'prospector': return <LeadProspector onSelectLead={handleGenerate} />;
       case 'projects': return <ProjectManager 
         projects={savedProjects} 
         onLoadProject={(p: SavedProject) => { 
@@ -621,7 +621,7 @@ const App: React.FC = () => {
         onReset={handleReset} 
         status={status} 
         history={history} 
-        isCooldown={cooldown && !identity.apiKey?.trim()} 
+        isCooldown={cooldown} 
         currentView={currentView} 
         setView={setCurrentView} 
         onOpenIdentity={() => setIsIdentityModalOpen(true)} 
