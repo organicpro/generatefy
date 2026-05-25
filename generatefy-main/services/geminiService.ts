@@ -1,5 +1,43 @@
 
-import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
+import { generateGroqText } from "./groqService";
+
+const ThinkingLevel = { HIGH: 'high' };
+
+class GroqCompatAI {
+  constructor(private options: { apiKey?: string }) {}
+
+  models = {
+    generateContent: async ({ contents, config }: any) => {
+      const prompt = typeof contents === 'string'
+        ? contents
+        : Array.isArray(contents)
+          ? contents.map((item) => item?.parts?.map((part: any) => part?.text || '').join('\n') || '').join('\n')
+          : String(contents || '');
+
+      const text = await generateGroqText({
+        prompt,
+        system: config?.systemInstruction,
+        customApiKey: this.options.apiKey,
+        temperature: config?.temperature ?? 0.3,
+        maxTokens: config?.maxOutputTokens || 8192,
+        json: config?.responseMimeType === 'application/json',
+      });
+
+      return { text };
+    },
+  };
+}
+
+async function callWithFallback(ai: any, _modelName: string, prompt: string, instruction: string, _budget?: number): Promise<any> {
+  return ai.models.generateContent({
+    contents: [{ parts: [{ text: prompt }] }],
+    config: {
+      systemInstruction: instruction,
+      temperature: 0.25,
+      maxOutputTokens: 16384,
+    },
+  });
+}
 
 const MASTER_TEMPLATE = `
 <html lang="pt-BR" class="scroll-smooth">
@@ -1168,46 +1206,6 @@ const validateHtmlIntegrity = (newHtml: string, oldHtml?: string): boolean => {
   return true;
 };
 
-async function callWithFallback(ai: any, modelName: string, prompt: string, instruction: string, budget: number): Promise<any> {
-  const config: any = { 
-    systemInstruction: instruction,
-    temperature: 0.2,
-    maxOutputTokens: 20000, // Increased for larger websites
-  };
-  
-  if (budget > 0 && modelName.includes('pro')) {
-    config.thinkingConfig = { thinkingLevel: ThinkingLevel.HIGH };
-  }
-
-  try {
-    return await ai.models.generateContent({
-      model: modelName,
-      contents: [{ parts: [{ text: prompt }] }],
-      config,
-    });
-  } catch (error: any) {
-    const errorMsg = error?.message || String(error);
-    const isQuotaError = errorMsg.includes('429') || errorMsg.includes('quota') || errorMsg.includes('RESOURCE_EXHAUSTED');
-    
-    if (isQuotaError) {
-      console.warn(`Model ${modelName} hit quota limits (429), switching to Flash immediately.`);
-    } else {
-      console.error(`Model ${modelName} failed, falling back to flash:`, error);
-    }
-    
-    // Fallback to Flash with a slightly higher token budget to ensure completion
-    return await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: [{ parts: [{ text: prompt }] }],
-      config: { 
-        systemInstruction: instruction,
-        temperature: 0.1, // Lower temperature for more stable fallback
-        maxOutputTokens: 20000 
-      },
-    });
-  }
-}
-
 export const generateWebsite = async (
   description: string, 
   currentHtml?: string, 
@@ -1216,18 +1214,15 @@ export const generateWebsite = async (
   partialUpdate?: { sectionId: string, oldHtml: string },
   groqApiKey?: string
 ): Promise<string> => {
-  const activeKey = customApiKey?.trim() || 
-                    (import.meta as any).env.VITE_GEMINI_API_KEY || 
-                    (import.meta as any).env.VITE_API_KEY ||
-                    (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
-  if (!activeKey) throw new Error("API_KEY_MISSING");
+  const activeGroqKey = groqApiKey?.trim() || customApiKey?.trim() || (import.meta as any).env.VITE_GROQ_API_KEY || '';
+  const activeKey = activeGroqKey;
 
-  // Check for OpenAI keys being used with Gemini
+  // Check for OpenAI keys being used where a Groq key is expected.
   if (activeKey.startsWith('sk-')) {
-    throw new Error("Você está usando uma chave da OpenAI (sk-...) em vez de uma chave do Google Gemini. Por favor, obtenha uma chave em aistudio.google.com");
+    throw new Error("Voce esta usando uma chave da OpenAI (sk-...) em vez de uma chave da Groq (gsk_...). Configure GROQ_API_KEY no Railway.");
   }
   
-  const ai = new GoogleGenAI({ apiKey: activeKey });
+  const ai = new GroqCompatAI({ apiKey: activeKey });
   const selectedInstruction = currentHtml ? getFramerUpdateInstruction(stylePreset) : getFramerPremiumInstruction(stylePreset);
   const fullInstruction = `${selectedInstruction}\n\n${ELITE_DESIGN_MANIFESTO}`;
   
@@ -1236,7 +1231,7 @@ export const generateWebsite = async (
   
   // Safety truncate context if it's still too large
   // Increased limits for better performance with large sites
-  const contextLimit = 100000; // Increased to 100k for modern Gemini models
+  const contextLimit = 100000; // Increased to 100k for large Groq prompts.
   if (minifiedContext.length > contextLimit) {
     console.warn(`Context too large (${minifiedContext.length}), truncating to ${contextLimit}`);
     const half = Math.floor(contextLimit / 2);
@@ -1289,7 +1284,7 @@ Output the full HTML document.`;
 
   // Use the latest and most capable model
   try {
-    const response = await callWithFallback(ai, 'gemini-3.1-pro-preview', prompt, fullInstruction, 8000);
+    const response = await callWithFallback(ai, 'groq-default', prompt, fullInstruction, 8000);
     let extracted = extractCode(response.text || '', true); 
     
     // Merge if partial
@@ -1304,9 +1299,9 @@ Output the full HTML document.`;
     return extracted;
   } catch (error: any) {
     if (error.message === "FALHA_INTEGRIDADE") {
-      console.warn("Gemini output failed integrity check, attempting fallback...");
+      console.warn("Groq output failed integrity check, attempting fallback...");
     } else {
-      console.error("Gemini API error, checking for Groq fallback:", error);
+      console.error("Groq API error, checking fallback:", error);
     }
     
     if (groqApiKey?.trim()) {
@@ -1370,10 +1365,10 @@ ${MASTER_TEMPLATE}
       }
     }
     
-    // Final fallback to Gemini Flash
+    // Final fallback through the same Groq proxy.
     try {
       const fallbackResponse = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'groq-default',
         contents: [{ parts: [{ text: prompt }] }],
         config: { 
           systemInstruction: selectedInstruction, 
@@ -1407,10 +1402,8 @@ export const generateSocialPost = async (
   aspectRatio: 'square' | 'story' = 'square'
 ): Promise<string> => {
   const activeKey = customApiKey?.trim() || 
-                    (import.meta as any).env.VITE_GEMINI_API_KEY || 
-                    (import.meta as any).env.VITE_API_KEY ||
-                    (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
-  const ai = new GoogleGenAI({ apiKey: activeKey });
+                    (import.meta as any).env.VITE_GROQ_API_KEY || '';
+  const ai = new GroqCompatAI({ apiKey: activeKey });
   const prompt = `
     [ACT AS AWARD-WINNING ART DIRECTOR]
     TASK: Create a stunning ${aspectRatio} social media post.
@@ -1423,7 +1416,7 @@ export const generateSocialPost = async (
     - Return ONLY the HTML inside <div id="capture-area">.
   `;
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'groq-default',
     contents: [{ parts: [{ text: prompt }] }],
     config: { systemInstruction: ELITE_DESIGN_MANIFESTO, temperature: 0.4 }
   });

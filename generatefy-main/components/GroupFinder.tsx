@@ -5,7 +5,6 @@ import {
   ShieldCheck, AlertCircle, Copy, Check, ChevronRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { GoogleGenAI } from "@google/genai";
 import { UserIdentity } from '../types';
 
 interface GroupFinderProps {

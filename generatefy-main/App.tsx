@@ -279,7 +279,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleGenerate = useCallback(async (description: string) => {
-    const activeApiKey = identity.apiKey?.trim();
+    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
     
     // Cooldown apenas se não tiver chave própria (para evitar abusos na chave do sistema)
     if (cooldown && !activeApiKey) return;
@@ -337,7 +337,7 @@ const App: React.FC = () => {
         } else if (lowerError.includes('token') || lowerError.includes('limit') || lowerError.includes('context')) {
           errorMessage = "O site está muito grande para esta alteração. Tente remover algumas seções ou fazer pedidos mais específicos.";
         } else if (lowerError.includes('api key') || lowerError.includes('invalid_argument') || lowerError.includes('unauthorized')) {
-          errorMessage = "Problema com a chave de API. Verifique se sua chave Gemini está correta nas configurações.";
+          errorMessage = "Problema com a chave de API. Verifique se a GROQ_API_KEY no Railway ou sua chave Groq nas configurações está correta.";
         } else if (lowerError.includes('safety') || lowerError.includes('blocked')) {
           errorMessage = "O pedido foi bloqueado pelos filtros de segurança da IA. Tente reformular sua solicitação.";
         }
@@ -355,7 +355,7 @@ const App: React.FC = () => {
     } finally {
       if (!activeApiKey) setTimeout(() => setCooldown(false), 5000); // Reduced cooldown
     }
-  }, [cooldown, identity.apiKey, activePreset, generatedHtml]);
+  }, [cooldown, identity.apiKey, identity.groqApiKey, activePreset, generatedHtml]);
 
   const handleWorkflowNext = (step?: number) => {
     const nextStep = step ?? workflowStep + 1;
@@ -411,7 +411,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleRegenerateSection = useCallback(async (sectionId: string, oldHtml: string, prompt: string) => {
-    const activeApiKey = identity.apiKey?.trim();
+    const activeApiKey = identity.groqApiKey?.trim() || identity.apiKey?.trim();
     const prev = generatedHtml;
     setStatus(GenerationStatus.GENERATING);
     setError('');
@@ -445,7 +445,7 @@ const App: React.FC = () => {
       setStatus(GenerationStatus.ERROR);
       setGeneratedHtml(prev);
     }
-  }, [generatedHtml, identity.apiKey, activePreset]);
+  }, [generatedHtml, identity.apiKey, identity.groqApiKey, activePreset]);
 
   const handleReset = () => { setCurrentView('niche-mining'); setWorkflowStep(1); setStatus(GenerationStatus.IDLE); setGeneratedHtml(''); setHistory([]); setLastDescription(''); setCooldown(false); setCurrentProjectId(null); setCurrentProduct(null); setMinedNiche(null); };
 

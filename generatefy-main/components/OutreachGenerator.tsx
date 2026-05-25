@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { UserIdentity } from '../types';
-import { GoogleGenAI } from "@google/genai";
+import { generateGroqText } from '../services/groqService';
 
 interface OutreachGeneratorProps {
   currentProjectDesc: string;
@@ -44,16 +44,10 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
   ];
 
   const generateScript = async () => {
-    if (!identity.apiKey) {
-      alert("Por favor, vincule sua chave API no perfil.");
-      return;
-    }
-    
     setLoading(true);
     setCopied(false);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: identity.apiKey });
       const prompt = `
         Aja como um especialista em Social Selling e Mensagens de Conexão.
         O objetivo é uma mensagem de "Abertura de Loop" para o nicho descrito abaixo.
@@ -72,12 +66,14 @@ export default function OutreachGenerator({ currentProjectDesc, identity, onNext
         Retorne APENAS o texto da mensagem final.
       `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
+      const text = await generateGroqText({
+        prompt,
+        customApiKey: identity.groqApiKey || identity.apiKey,
+        temperature: 0.35,
+        maxTokens: 2048,
       });
 
-      setScript(response.text || "");
+      setScript(text || "");
     } catch (e) {
       console.error(e);
       setScript('Erro ao gerar script. Verifique sua conexão e chave API.');

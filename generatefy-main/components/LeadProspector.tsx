@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { Radar, MapPin, Star, Globe, Loader2, Briefcase, Navigation, XCircle, ExternalLink, Layout, Map as MapIcon, ShieldCheck, Search } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { Lead } from '../types';
+import { extractJsonObject, generateGroqText } from '../services/groqService';
 
 interface LeadProspectorProps {
   onSelectLead: (description: string) => void;
@@ -27,10 +27,21 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
     
     try {
       const env = (import.meta as any).env || {};
-      const activeKey = customApiKey || env.VITE_GEMINI_API_KEY || env.VITE_API_KEY;
-      if (!activeKey) throw new Error("API_KEY_MISSING");
+      const activeKey = customApiKey || env.VITE_GROQ_API_KEY || '';
 
-      const ai = new GoogleGenAI({ apiKey: activeKey });
+      const ai = {
+        models: {
+          generateContent: async ({ contents }: any) => {
+            const text = await generateGroqText({
+              prompt: String(contents),
+              customApiKey: activeKey,
+              temperature: 0.35,
+              maxTokens: 4096,
+            });
+            return { text, candidates: [] as any[] };
+          }
+        }
+      };
       
       let latLng = undefined;
       if (!location.trim()) {
@@ -46,18 +57,18 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
 
       // PROMPT ULTRA-ESPECÍFICO PARA GOOGLE MAPS
       const mapsPrompt = `
-        Search strictly on Google Maps and Google My Business for: "${searchQuery}" in "${location || 'nearby'}".
-        You must find at least 8 real, active businesses.
+        Generate a prospecting list for: "${searchQuery}" in "${location || 'Brasil'}".
+        You must return at least 8 plausible business opportunities for manual validation.
         For each business, provide:
         1. Official Name
         2. Full physical address
-        3. A direct Google Maps URL (maps.app.goo.gl or google.com/maps)
+        3. A Google Maps search URL in this exact format: https://www.google.com/maps/search/?api=1&query=NOME+LOCAL
         
-        Use the googleMaps and googleSearch tools to verify these are real places.
+        Do not invent phone numbers or private data. Prefer search URLs that the user can open and validate.
       `;
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "groq",
         contents: mapsPrompt,
         config: {
           tools: [{ googleMaps: {} }, { googleSearch: {} }],
@@ -133,7 +144,7 @@ export default function LeadProspector({ onSelectLead, customApiKey }: LeadProsp
       const errorMsg = e.toString();
       
       if (errorMsg.includes("404") || errorMsg.includes("NOT_FOUND")) {
-        setError("Erro de Modelo: O serviço de Mapas do Gemini está passando por uma atualização técnica. Tente novamente em alguns segundos.");
+        setError("Erro de Modelo: a Groq recusou o modelo atual. Verifique GROQ_MODEL ou tente novamente em alguns segundos.");
       } else if (errorMsg.includes("403")) {
         setError("Acesso Negado: Sua chave API não tem permissão para usar o Google Maps Grounding. Verifique no Google Cloud Console.");
       } else {

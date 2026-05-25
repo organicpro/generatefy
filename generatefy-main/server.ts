@@ -30,6 +30,20 @@ type TrendingNichePayload = {
   items: TrendingNiche[];
 };
 
+type GroqChatMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+type GroqChatBody = {
+  messages?: GroqChatMessage[];
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  responseFormat?: { type: "json_object" };
+  apiKey?: string;
+};
+
 let trendingCache: { expiresAt: number; payload: TrendingNichePayload } | null = null;
 
 const fallbackTrendingNiches: TrendingNiche[] = [
@@ -374,6 +388,60 @@ async function startServer() {
     const forceRefresh = req.query.refresh === "1" || req.query.refresh === "true";
     const payload = await getTrendingNichePayload(forceRefresh);
     res.json(payload);
+  });
+
+  app.post("/api/groq/chat", async (req: Request<unknown, unknown, GroqChatBody>, res: Response) => {
+    const messages = Array.isArray(req.body.messages) ? req.body.messages : [];
+    const apiKey = req.body.apiKey?.trim() || process.env.GROQ_API_KEY?.trim();
+    const model = req.body.model?.trim() || process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
+
+    if (!apiKey) {
+      res.status(400).json({
+        error: "GROQ_API_KEY_MISSING",
+        message: "Configure GROQ_API_KEY no Railway ou informe uma chave Groq no perfil.",
+      });
+      return;
+    }
+
+    if (messages.length === 0) {
+      res.status(400).json({ error: "EMPTY_MESSAGES", message: "Nenhuma mensagem enviada para a Groq." });
+      return;
+    }
+
+    try {
+      const groqResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: Number.isFinite(req.body.temperature) ? req.body.temperature : 0.3,
+          max_completion_tokens: req.body.maxTokens || 8192,
+          response_format: req.body.responseFormat,
+        }),
+      });
+
+      const data: any = await groqResponse.json().catch(() => ({}));
+
+      if (!groqResponse.ok) {
+        res.status(groqResponse.status).json({
+          error: data?.error?.code || "GROQ_REQUEST_FAILED",
+          message: data?.error?.message || "Falha na API da Groq.",
+        });
+        return;
+      }
+
+      res.json({
+        text: data?.choices?.[0]?.message?.content || "",
+        model: data?.model || model,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(502).json({ error: "GROQ_NETWORK_ERROR", message });
+    }
   });
 
   app.get(["/api/whatsapp-engine-admin/status", "/api/ryzesend-admin/status"], (_req, res) => {

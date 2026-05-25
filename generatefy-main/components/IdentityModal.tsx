@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { X, UserCircle, Briefcase, Award, Save, CheckCircle2, ChevronDown, Key, AlertCircle, Loader2, Zap, Cpu } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { UserIdentity } from '../types';
 import { cn } from '../lib/utils';
+import { generateGroqText } from '../services/groqService';
 
 interface IdentityModalProps {
   identity: UserIdentity;
@@ -59,10 +59,18 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
     setTestResult(null);
     setTestError(null);
     try {
-      const ai = new GoogleGenAI({ apiKey: formData.apiKey });
+      const ai = {
+        models: {
+          generateContent: (_args?: unknown) => generateGroqText({
+            prompt: 'Responda apenas OK.',
+            customApiKey: formData.apiKey,
+            maxTokens: 16,
+          })
+        }
+      };
       // Teste com o modelo Flash mais estável para 2026
       await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'groq-default',
         contents: 'Hi',
       });
       setTestResult('success');
@@ -167,7 +175,7 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-amber-500/60">
                       <Key className="w-4 h-4" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em]">Chave Neural Google (v3)</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em]">Chave Neural Groq</span>
                     </div>
                     {formData.apiKey && (
                       <button 
@@ -192,13 +200,13 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                     type="password" 
                     value={formData.apiKey || ''}
                     onChange={(e) => setFormData({...formData, apiKey: e.target.value})}
-                    placeholder="AIzaSy... (Vazio para Rede Global)"
+                    placeholder="gsk_... (vazio para usar GROQ_API_KEY do Railway)"
                     className="w-full bg-black border border-white/5 rounded-xl px-5 py-4 text-xs text-primary font-mono outline-none focus:border-primary/50 transition-all placeholder:text-zinc-900"
                   />
                   <div className="flex items-start gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                     <Zap className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <p className="text-[9px] text-zinc-600 leading-tight uppercase font-bold tracking-tight">
-                      Usamos nossa infraestrutura compartilhada por padrão. Implemente sua <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline group-hover:text-primary transition-colors">Chave Neural</a> para prioridade absoluta e latência zero.
+                      Usamos a variavel GROQ_API_KEY do servidor por padrao. Se quiser testar localmente, cole uma <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline group-hover:text-primary transition-colors">chave Groq</a> aqui.
                     </p>
                   </div>
                 </div>
@@ -207,7 +215,7 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 text-emerald-500/60">
                       <Cpu className="w-4 h-4" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em]">Nó de Overclock Groq (Reserva)</span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em]">Chave Groq Alternativa</span>
                     </div>
                     {formData.groqApiKey && (
                       <button 
@@ -230,11 +238,11 @@ export default function IdentityModal({ identity, onSave, onClose, onLogout }: I
                     type="password" 
                     value={formData.groqApiKey || ''}
                     onChange={(e) => setFormData({...formData, groqApiKey: e.target.value})}
-                    placeholder="gsk_... (Failover support)"
+                    placeholder="gsk_... (opcional)"
                     className="w-full bg-black border border-white/5 rounded-xl px-5 py-4 text-xs text-emerald-500 font-mono outline-none focus:border-emerald-500/50 transition-all placeholder:text-zinc-900"
                   />
                   <p className="text-[8px] text-zinc-700 leading-tight uppercase tracking-widest font-black text-center">
-                    Auto-Failover habilitado. A Groq assume em <span className="text-emerald-500">10ms</span> se a rede principal oscilar.
+                    Este campo tambem usa Groq e fica como alternativa local ao GROQ_API_KEY do Railway.
                   </p>
                 </div>
               </div>

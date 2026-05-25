@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { UserIdentity } from '../types';
-import { GoogleGenAI } from "@google/genai";
+import { extractJsonObject, generateGroqText } from '../services/groqService';
 
 interface ProductCreatorProps {
   onProductCreated: (productName: string, productType: string, description: string) => void;
@@ -141,16 +141,10 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
       setErrorMessage('Escolha um nicho antes de gerar a oferta.');
       return;
     }
-    if (!identity.apiKey) {
-      setErrorMessage('Configure sua chave Gemini no Protocolo de Identidade antes de gerar a oferta.');
-      return;
-    }
     setErrorMessage('');
     setLoading(true);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: identity.apiKey });
-
       const prompt = `
         Aja como um Product Manager e Copywriter Senior. 
         Crie um Ebook de alta conversão para o nicho "${niche}".
@@ -165,33 +159,33 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         "bonus": Um bônus irresistível.
       `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
+      const text = await generateGroqText({
+        prompt,
+        customApiKey: identity.groqApiKey || identity.apiKey,
+        json: true,
+        temperature: 0.3,
+        maxTokens: 4096,
       });
 
-      const text = response.text || "";
-      const jsonStr = text.replace(/```json|```/gi, '').trim();
+      const jsonStr = extractJsonObject(text || "{}");
       const content = JSON.parse(jsonStr);
       setGeneratedContent(content);
       setProductHtml(''); 
     } catch (error) {
       console.error("Generator error:", error);
-      setErrorMessage("Erro ao validar oferta. Revise sua chave Gemini no Protocolo de Identidade.");
+      setErrorMessage("Erro ao validar oferta. Revise sua chave Groq ou a variavel GROQ_API_KEY no Railway.");
     } finally {
       setLoading(false);
     }
   };
 
   const materializeContent = async () => {
-    if (!generatedContent || !identity.apiKey) return;
+    if (!generatedContent) return;
     setGeneratingContent(true);
     setProductHtml('');
     setCurrentWave(0);
     
     try {
-      const ai = new GoogleGenAI({ apiKey: identity.apiKey });
-      
       if (selectedType === 'app') {
         // SIMULAÇÃO DE GERAÇÃO PARA APPS
         const totalSimSteps = 10;
@@ -278,12 +272,14 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
             - Retorne APENAS o HTML puro dos cards. Não use <html>, <head> ou <body>.
           `;
 
-          const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt,
+          const text = await generateGroqText({
+            prompt,
+            customApiKey: identity.groqApiKey || identity.apiKey,
+            temperature: 0.35,
+            maxTokens: 8192,
           });
 
-          const waveHtml = (response.text || "").replace(/```html|```/gi, '').trim();
+          const waveHtml = (text || "").replace(/```html|```/gi, '').trim();
           fullHtml += `\n<!-- ONDA ${i+1} -->\n` + waveHtml;
           setProductHtml(fullHtml);
         }
@@ -586,12 +582,12 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
         {errorMessage && (
           <div className="rounded-[2rem] border border-amber-500/20 bg-amber-500/10 px-5 py-4 text-sm font-semibold flex items-start justify-between gap-4 text-amber-100">
             <span>{errorMessage}</span>
-            {!identity.apiKey && (
+            {!identity.groqApiKey && !identity.apiKey && (
               <button
                 onClick={onOpenIdentity}
                 className="shrink-0 px-4 py-2 rounded-xl bg-primary text-black text-[10px] font-black uppercase tracking-widest"
               >
-                Configurar Gemini
+                Configurar Groq
               </button>
             )}
           </div>

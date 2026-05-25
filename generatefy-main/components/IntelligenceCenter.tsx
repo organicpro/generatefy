@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { BrainCircuit, Megaphone, Search, Newspaper, CheckCircle2, Loader2, Sparkles, Copy, Layout, Send } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
 import { cn } from '../lib/utils';
 import { UserIdentity } from '../types';
+import { extractJsonObject, generateGroqText } from '../services/groqService';
 
 interface IntelligenceCenterProps {
   currentProjectDesc: string;
@@ -23,10 +23,6 @@ export default function IntelligenceCenter({ currentProjectDesc, identity }: Int
     if (!currentProjectDesc) return;
     setLoading(true);
     try {
-      const env = (import.meta as any).env || {};
-      const activeKey = identity.apiKey || env.VITE_GEMINI_API_KEY || env.VITE_API_KEY;
-      const ai = new GoogleGenAI({ apiKey: activeKey });
-      
       const prompt = `
         Crie uma estratégia completa de marketing para este projeto: "${currentProjectDesc}".
         Imagine que você é o estrategista chefe da agência de ${identity.name || 'soluções digitais'} (${identity.specialty}).
@@ -43,14 +39,15 @@ export default function IntelligenceCenter({ currentProjectDesc, identity }: Int
         - ads: Uma copy de exemplo para Meta/Google Ads com chamada para ação (CTA).
       `;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: { responseMimeType: "application/json" }
+      const text = await generateGroqText({
+        prompt,
+        customApiKey: identity.groqApiKey || identity.apiKey,
+        json: true,
+        temperature: 0.25,
+        maxTokens: 4096,
       });
       
-      const text = response.text?.trim() || "{}";
-      const result = JSON.parse(text);
+      const result = JSON.parse(extractJsonObject(text || "{}"));
       setData(result);
     } catch (e) {
       console.error(e);

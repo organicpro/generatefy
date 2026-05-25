@@ -68,11 +68,11 @@ const ACADEMY_DATA: Module[] = [
             {
               title: 'PASSO 2: OBTENDO A CHAVE NO GOOGLE',
               items: [
-                'Acesse o site Google AI Studio (aistudio.google.com).',
+                'Acesse o console da Groq (console.groq.com/keys).',
                 'Faça login com sua conta Google.',
                 'Clique no botão "Get API Key" no menu lateral.',
                 'Clique em "Create API key in new project".',
-                'Copie o código que começa com "AIza...".'
+                'Copie o codigo que comeca com "gsk_...".'
               ],
               type: 'list'
             },
@@ -80,7 +80,7 @@ const ACADEMY_DATA: Module[] = [
               title: 'PASSO 3: COLANDO NO GENERATEFY',
               items: [
                 'Volte para a Generatefy e clique em "Chave API Própria" dentro do seu Perfil.',
-                'Cole o código no campo "Google Gemini API Key".',
+                'Cole o codigo no campo "Chave Neural Groq".',
                 'Clique no botão "Testar" para garantir que está funcionando.',
                 'Clique em "Salvar Configurações".'
               ],
