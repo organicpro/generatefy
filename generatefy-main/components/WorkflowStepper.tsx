@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDown, Check, MessageSquare, Radar, Search, Send, Target } from 'lucide-react';
+import { ArrowDown, BadgeDollarSign, Check, MessageSquare, Radar, Search, Send, Target } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface WorkflowStepperProps {
@@ -11,9 +11,10 @@ export default function WorkflowStepper({ currentStep, onSelectStep }: WorkflowS
   const steps = [
     { id: 1, label: 'Mineracao', description: 'Nichos quentes e sinais de mercado', icon: Radar },
     { id: 2, label: 'Oferta', description: 'Produto, promessa e contexto', icon: Target },
-    { id: 3, label: 'Copy', description: 'Mensagem e abordagem comercial', icon: MessageSquare },
-    { id: 4, label: 'Leads', description: 'Fontes, grupos e lista valida', icon: Search },
-    { id: 5, label: 'Disparo', description: 'WhatsApp, fila e execucao', icon: Send },
+    { id: 3, label: 'Faturamento', description: 'Valor, venda e notificacao', icon: BadgeDollarSign },
+    { id: 4, label: 'Copy', description: 'Mensagem e abordagem comercial', icon: MessageSquare },
+    { id: 5, label: 'Leads', description: 'Fontes, grupos e lista valida', icon: Search },
+    { id: 6, label: 'Disparo', description: 'WhatsApp, fila e execucao', icon: Send },
   ];
 
   return (
@@ -28,7 +29,7 @@ export default function WorkflowStepper({ currentStep, onSelectStep }: WorkflowS
             Jornada de execucao
           </h2>
           <p className="mt-2 text-[10px] text-zinc-500 leading-relaxed font-medium">
-            Siga de cima para baixo: mineracao, oferta, copy, leads e disparo final.
+            Siga de cima para baixo: mineracao, oferta, faturamento, copy, leads e disparo final.
           </p>
         </div>
 

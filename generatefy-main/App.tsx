@@ -23,6 +23,7 @@ import BulkSender from './components/BulkSender';
 import Auth from './components/Auth';
 import GroupFinder from './components/GroupFinder';
 import NicheMining, { MinedNicheSelection } from './components/NicheMining';
+import RevenueDashboard from './components/RevenueDashboard';
 import { db, auth, isFirebaseConfigured } from './lib/firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, where, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -359,16 +360,17 @@ const App: React.FC = () => {
 
   const handleWorkflowNext = (step?: number) => {
     const nextStep = step ?? workflowStep + 1;
-    if (nextStep > 5) return;
+    if (nextStep > 6) return;
     
     setWorkflowStep(nextStep);
     
     const stepToView: Record<number, AppView> = {
       1: 'niche-mining',
       2: 'product-creator',
-      3: 'outreach',
-      4: 'finder',
-      5: 'bulk-sender'
+      3: 'revenue',
+      4: 'outreach',
+      5: 'finder',
+      6: 'bulk-sender'
     };
     
     setCurrentView(stepToView[nextStep] || 'product-creator');
@@ -562,9 +564,15 @@ const App: React.FC = () => {
         setStatus(GenerationStatus.IDLE);
         setError('');
         setWorkflowStep(3);
-        setCurrentView('outreach');
+        setCurrentView('revenue');
         setHistory(prev => [...prev, `Oferta configurada: ${name} (${type}).`]);
       }} />;
+      case 'revenue': return <RevenueDashboard
+        currentProduct={currentProduct}
+        currentProjectDesc={currentProduct?.description || lastDescription}
+        identity={identity}
+        onNext={() => handleWorkflowNext(4)}
+      />;
       case 'outreach': return <OutreachGenerator 
         currentProjectDesc={currentProduct?.description || lastDescription} 
         identity={identity} 
@@ -587,9 +595,10 @@ const App: React.FC = () => {
       case 'niche-mining': setWorkflowStep(1); break;
       case 'product-creator': setWorkflowStep(2); break;
       case 'builder': setWorkflowStep(2); break;
-      case 'outreach': setWorkflowStep(3); break;
-      case 'finder': setWorkflowStep(4); break;
-      case 'bulk-sender': setWorkflowStep(5); break;
+      case 'revenue': setWorkflowStep(3); break;
+      case 'outreach': setWorkflowStep(4); break;
+      case 'finder': setWorkflowStep(5); break;
+      case 'bulk-sender': setWorkflowStep(6); break;
       default: break;
     }
   }, [currentView]);

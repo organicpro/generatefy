@@ -926,7 +926,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                 onClick={handleFinish}
                 className="w-full py-5 bg-primary text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-[0_20px_50px_rgba(34,197,94,0.3)] hover:scale-[1.02] active:scale-95 transition-all"
               >
-                Avancar: Copy
+                Avancar: Faturamento
               </button>
             </div>
           </div>
@@ -1142,7 +1142,7 @@ export default function ProductCreator({ onProductCreated, identity, onOpenIdent
                       onClick={handleFinish}
                       className="w-full py-5 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 hover:bg-primary transition-all group shadow-xl shadow-white/5"
                     >
-                      PASSO SEGUINTE: ESCREVER COPY
+                      PASSO SEGUINTE: FATURAMENTO
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>

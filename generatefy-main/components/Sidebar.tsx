@@ -165,9 +165,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             <div className="space-y-1">
               <NavItem view="niche-mining" icon={Radar} label="Mineração" badge={workflowStep === 1 ? "LIVE" : undefined} />
               <NavItem view="product-creator" icon={Zap} label="Criar Oferta" badge={workflowStep === 2 ? "LIVE" : undefined} />
-              <NavItem view="outreach" icon={MessageSquare} label="Copy de Abordagem" badge={workflowStep === 3 ? "LIVE" : undefined} />
-              <NavItem view="finder" icon={Target} label="Mapa de Leads" badge={workflowStep === 4 ? "LIVE" : undefined} />
-              <NavItem view="bulk-sender" icon={Send} label="Disparo WhatsApp" badge={workflowStep === 5 ? "LIVE" : undefined} />
+              <NavItem view="revenue" icon={DollarSign} label="Faturamento" badge={workflowStep === 3 ? "LIVE" : undefined} />
+              <NavItem view="outreach" icon={MessageSquare} label="Copy de Abordagem" badge={workflowStep === 4 ? "LIVE" : undefined} />
+              <NavItem view="finder" icon={Target} label="Mapa de Leads" badge={workflowStep === 5 ? "LIVE" : undefined} />
+              <NavItem view="bulk-sender" icon={Send} label="Disparo WhatsApp" badge={workflowStep === 6 ? "LIVE" : undefined} />
             </div>
           </div>
 
