@@ -57,6 +57,46 @@ const parseCurrencyInput = (value: string) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const playSaleSound = () => {
+  try {
+    const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextCtor) return;
+
+    const audioContext = new AudioContextCtor();
+    const now = audioContext.currentTime;
+    const masterGain = audioContext.createGain();
+    masterGain.gain.setValueAtTime(0.0001, now);
+    masterGain.gain.exponentialRampToValueAtTime(0.18, now + 0.015);
+    masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+    masterGain.connect(audioContext.destination);
+
+    const playTone = (frequency: number, start: number, duration: number, type: OscillatorType = 'sine', volume = 0.7) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, start);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(gain);
+      gain.connect(masterGain);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.03);
+    };
+
+    playTone(880, now, 0.18, 'triangle', 0.8);
+    playTone(1174.66, now + 0.13, 0.22, 'triangle', 0.75);
+    playTone(1567.98, now + 0.29, 0.32, 'sine', 0.58);
+    playTone(2093, now + 0.43, 0.18, 'sine', 0.32);
+
+    window.setTimeout(() => {
+      void audioContext.close().catch(() => undefined);
+    }, 1400);
+  } catch (error) {
+    console.warn('Som de venda indisponivel:', error);
+  }
+};
+
 const buildSaleNotification = (sale: SaleRecord) => {
   const date = new Date(sale.createdAt).toLocaleString('pt-BR');
   return [
@@ -159,6 +199,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
     const notificationText = buildSaleNotification(sale);
     setLastNotification(notificationText);
     setLiveToast(sale);
+    playSaleSound();
     window.setTimeout(() => {
       setLiveToast((current) => current?.id === sale.id ? null : current);
     }, 7000);
@@ -222,7 +263,20 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
       const tagName = target?.tagName?.toLowerCase();
       const isTypingInField = tagName === 'input' || tagName === 'textarea' || tagName === 'select' || target?.isContentEditable;
 
-      if (isTypingInField || event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) return;
+      if (isTypingInField) return;
+
+      const isSecretShortcut = event.ctrlKey && event.altKey && event.key.toLowerCase() === 'v';
+      if (isSecretShortcut) {
+        event.preventDefault();
+        const now = Date.now();
+        if (now - lastSecretTriggerRef.current < 1500) return;
+        lastSecretTriggerRef.current = now;
+        secretBufferRef.current = '';
+        void registerSale();
+        return;
+      }
+
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) return;
 
       const normalizedSecret = liveSecret.trim().toLowerCase();
       if (!normalizedSecret) return;
