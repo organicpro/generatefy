@@ -272,14 +272,14 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
         <header className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-black tracking-widest uppercase">
             <BadgeDollarSign className="w-3.5 h-3.5" />
-            Central de integracoes
+            Gateway de pagamentos
           </div>
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
               Painel de <span className="text-emerald-300 italic">Vendas.</span>
             </h1>
             <p className="mt-3 text-sm text-zinc-500 font-medium leading-relaxed">
-              Conecte plataformas de checkout para acompanhar eventos de venda, ticket medio e desempenho dos produtos gerados.
+              Monitore canais de checkout, webhooks, eventos aprovados, ticket medio e desempenho dos produtos gerados.
             </p>
           </div>
         </header>
@@ -319,9 +319,9 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-300">Checkout hub</p>
-                <h2 className="mt-2 text-2xl font-black text-white">Integrações</h2>
+                <h2 className="mt-2 text-2xl font-black text-white">Conexões</h2>
                 <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
-                  Conecte plataformas de pagamento para receber eventos de venda automaticamente neste dashboard.
+                  Gerencie plataformas de pagamento, webhooks e eventos de venda aprovados neste dashboard.
                 </p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center text-emerald-300">
@@ -335,7 +335,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                   <p className="text-[9px] font-black uppercase tracking-[0.22em] text-zinc-600">Produto monitorado</p>
                   <h3 className="mt-2 text-lg font-black text-white truncate">{productName || 'Produto atual'}</h3>
                   <p className="mt-1 text-xs font-bold text-emerald-300">
-                    {amount ? `Valor configurado: ${amount}` : 'Aguardando valor do fluxo'}
+                    {amount ? `Valor base: ${amount}` : 'Valor base pendente'}
                   </p>
                 </div>
                 <div className="h-10 w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
@@ -350,7 +350,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                   <div>
                     <p className="text-sm font-black text-white">{option}</p>
                     <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600">
-                      {index === 0 ? 'Webhook pronto para configurar' : 'Integração disponível em breve'}
+                      {index === 0 ? 'Webhook operacional' : 'API configurável'}
                     </p>
                   </div>
                   <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-emerald-300">
@@ -363,7 +363,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
             <div className="rounded-[2rem] border border-amber-300/10 bg-amber-300/5 p-5">
               <p className="text-[9px] font-black uppercase tracking-[0.25em] text-amber-200">Status operacional</p>
               <p className="mt-2 text-xs text-amber-100/70 leading-relaxed">
-                Aguardando conexão de checkout. Quando a plataforma enviar um evento aprovado, o painel atualiza o faturamento automaticamente.
+                Webhooks preparados para eventos de compra aprovada, reembolso, assinatura e atualização de status.
               </p>
             </div>
           </section>
@@ -401,13 +401,13 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
               <div className="rounded-[2.5rem] border border-white/5 bg-zinc-950/60 p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <PlugZap className="w-5 h-5 text-primary" />
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Integracoes futuras</h3>
+                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Canais de checkout</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {platformOptions.map((option) => (
                     <div key={option} className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3">
                       <p className="text-[10px] font-black text-white">{option}</p>
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Conectar</p>
+                      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Webhook/API</p>
                     </div>
                   ))}
                 </div>
