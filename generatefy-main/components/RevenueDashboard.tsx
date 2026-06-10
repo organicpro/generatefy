@@ -6,16 +6,13 @@ import {
   CheckCircle2,
   Copy,
   DollarSign,
-  Loader2,
   PlugZap,
   ReceiptText,
-  Sparkles,
   Trash2,
   TrendingUp,
   Wallet,
 } from 'lucide-react';
 import { UserIdentity } from '../types';
-import { extractJsonObject, generateGroqText } from '../services/groqService';
 
 const REVENUE_STORAGE_KEY = 'generatefy_revenue_sales_v1';
 const LIVE_SECRET_STORAGE_KEY = 'generatefy_live_sale_secret_v1';
@@ -47,7 +44,7 @@ interface RevenueDashboardProps {
   onNext: () => void;
 }
 
-const platformOptions = ['Manual', 'Hotmart', 'Kiwify', 'Eduzz', 'Monetizze', 'Stripe', 'Mercado Pago'];
+const platformOptions = ['Hotmart', 'Kiwify', 'Eduzz', 'Monetizze', 'Stripe', 'Mercado Pago'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
@@ -74,15 +71,13 @@ const buildSaleNotification = (sale: SaleRecord) => {
   ].join('\n');
 };
 
-export default function RevenueDashboard({ currentProduct, currentProjectDesc, identity, onNext }: RevenueDashboardProps) {
+export default function RevenueDashboard({ currentProduct, currentProjectDesc, identity: _identity, onNext }: RevenueDashboardProps) {
   const [sales, setSales] = useState<SaleRecord[]>([]);
   const [productName, setProductName] = useState(currentProduct?.name || '');
   const [productDescription, setProductDescription] = useState(currentProduct?.description || currentProjectDesc || '');
   const [productType, setProductType] = useState(currentProduct?.type || 'produto');
   const [amount, setAmount] = useState(currentProduct?.priceLabel || '');
-  const [platform, setPlatform] = useState('Manual');
-  const [customerName, setCustomerName] = useState('');
-  const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+  const [platform] = useState('Hotmart');
   const [notice, setNotice] = useState('');
   const [lastNotification, setLastNotification] = useState('');
   const [liveSecret, setLiveSecret] = useState('venda');
@@ -146,48 +141,6 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
     return lastSeven.map((item) => ({ ...item, height: Math.max(8, (item.total / max) * 100) }));
   }, [sales]);
 
-  const suggestProductInfo = async () => {
-    setLoadingSuggestion(true);
-    setNotice('');
-
-    try {
-      const prompt = `
-        Aja como estrategista de produto digital.
-        Com base no contexto abaixo, gere um nome comercial curto e uma descricao persuasiva para registrar uma venda.
-
-        CONTEXTO:
-        ${currentProduct?.description || currentProjectDesc || productDescription}
-
-        PRODUTO ATUAL:
-        ${currentProduct?.name || productName || 'Produto digital'}
-
-        Retorne JSON estrito:
-        {
-          "productName": "nome do produto",
-          "productDescription": "descricao comercial em 2 frases"
-        }
-      `;
-
-      const text = await generateGroqText({
-        prompt,
-        customApiKey: identity.groqApiKey || identity.apiKey,
-        json: true,
-        temperature: 0.25,
-        maxTokens: 1200,
-      });
-
-      const parsed = JSON.parse(extractJsonObject(text || '{}'));
-      setProductName(parsed.productName || currentProduct?.name || productName);
-      setProductDescription(parsed.productDescription || currentProduct?.description || productDescription);
-      setNotice('Dados comerciais sugeridos pela IA.');
-    } catch (error) {
-      console.error(error);
-      setNotice('Nao consegui atualizar com IA agora, mas voce pode preencher manualmente.');
-    } finally {
-      setLoadingSuggestion(false);
-    }
-  };
-
   const emitSaleNotification = async (sale: SaleRecord) => {
     const notificationText = buildSaleNotification(sale);
     setLastNotification(notificationText);
@@ -219,7 +172,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
     }
   };
 
-  const registerSale = async (source: 'manual' | 'secret' = 'manual') => {
+  const registerSale = async () => {
     const saleAmount = parseCurrencyInput(amount);
 
     if (!productName.trim()) {
@@ -239,15 +192,13 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
       productType,
       amount: saleAmount,
       platform,
-      customerName: customerName.trim(),
+      customerName: 'Checkout sincronizado',
       createdAt: new Date().toISOString(),
     };
 
     const nextSales = [sale, ...sales];
     persistSales(nextSales);
-    if (source === 'manual') setAmount('');
-    setCustomerName('');
-    setNotice(`Venda registrada: ${formatCurrency(saleAmount)} em ${sale.productName}.`);
+    setNotice(`Evento de checkout sincronizado: ${formatCurrency(saleAmount)} em ${sale.productName}.`);
     await emitSaleNotification(sale);
   };
 
@@ -271,12 +222,12 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
 
       lastSecretTriggerRef.current = now;
       secretBufferRef.current = '';
-      void registerSale('secret');
+      void registerSale();
     };
 
     window.addEventListener('keydown', handleSecretTyping);
     return () => window.removeEventListener('keydown', handleSecretTyping);
-  }, [liveSecret, amount, productName, productDescription, productType, platform, customerName, sales]);
+  }, [liveSecret, amount, productName, productDescription, productType, platform, sales]);
 
   const copyLastNotification = async () => {
     if (!lastNotification) return;
@@ -308,7 +259,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                     {liveToast.platform}
                   </span>
                   <span className="rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-zinc-300">
-                    Registro manual
+                    Evento de checkout
                   </span>
                 </div>
               </div>
@@ -321,14 +272,14 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
         <header className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[10px] font-black tracking-widest uppercase">
             <BadgeDollarSign className="w-3.5 h-3.5" />
-            Faturamento simulado
+            Central de integracoes
           </div>
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
               Painel de <span className="text-emerald-300 italic">Vendas.</span>
             </h1>
             <p className="mt-3 text-sm text-zinc-500 font-medium leading-relaxed">
-              Registre vendas manualmente agora e deixe preparado para futuras integracoes com plataformas. O nome e a descricao podem vir da IA; o valor voce controla.
+              Conecte plataformas de checkout para acompanhar eventos de venda, ticket medio e desempenho dos produtos gerados.
             </p>
           </div>
         </header>
@@ -365,89 +316,55 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
           <section className="xl:col-span-5 rounded-[2.5rem] border border-white/5 bg-zinc-950/60 p-6 md:p-8 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-300">Registro manual</p>
-                <h2 className="mt-2 text-2xl font-black text-white">Nova venda</h2>
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-emerald-300">Checkout hub</p>
+                <h2 className="mt-2 text-2xl font-black text-white">Integrações</h2>
+                <p className="mt-2 text-xs text-zinc-500 leading-relaxed">
+                  Conecte plataformas de pagamento para receber eventos de venda automaticamente neste dashboard.
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={suggestProductInfo}
-                disabled={loadingSuggestion}
-                className="px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
-              >
-                {loadingSuggestion ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                IA
-              </button>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center text-emerald-300">
+                <PlugZap className="w-5 h-5" />
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Nome do produto</label>
-                <input
-                  value={productName}
-                  onChange={(event) => setProductName(event.target.value)}
-                  placeholder="A IA preenche, mas voce pode editar"
-                  className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-sm text-white outline-none focus:border-emerald-400/50"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Descricao comercial</label>
-                <textarea
-                  value={productDescription}
-                  onChange={(event) => setProductDescription(event.target.value)}
-                  rows={5}
-                  placeholder="Descricao gerada pelo contexto do produto"
-                  className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-sm text-white outline-none focus:border-emerald-400/50 resize-none leading-relaxed"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Valor manual</label>
-                  <input
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    placeholder="Ex: 97,00"
-                    inputMode="decimal"
-                    className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-sm text-white outline-none focus:border-emerald-400/50"
-                  />
+            <div className="rounded-[2rem] border border-white/5 bg-black/30 p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.22em] text-zinc-600">Produto monitorado</p>
+                  <h3 className="mt-2 text-lg font-black text-white truncate">{productName || 'Produto atual'}</h3>
+                  <p className="mt-1 text-xs font-bold text-emerald-300">
+                    {amount ? `Valor configurado: ${amount}` : 'Aguardando valor do fluxo'}
+                  </p>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Plataforma</label>
-                  <select
-                    value={platform}
-                    onChange={(event) => setPlatform(event.target.value)}
-                    className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-sm text-white outline-none focus:border-emerald-400/50"
-                  >
-                    {platformOptions.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
+                <div className="h-10 w-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                  <DollarSign className="w-5 h-5" />
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Cliente ou observacao opcional</label>
-                <input
-                  value={customerName}
-                  onChange={(event) => setCustomerName(event.target.value)}
-                  placeholder="Ex: Joao, venda no direct, pedido 1021..."
-                  className="w-full rounded-2xl bg-black/50 border border-white/10 px-5 py-4 text-sm text-white outline-none focus:border-emerald-400/50"
-                />
-              </div>
+            <div className="grid grid-cols-1 gap-3">
+              {platformOptions.map((option, index) => (
+                <div key={option} className="rounded-[1.5rem] border border-white/5 bg-white/[0.03] p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-black text-white">{option}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-zinc-600">
+                      {index === 0 ? 'Webhook pronto para configurar' : 'Integração disponível em breve'}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[8px] font-black uppercase tracking-widest text-emerald-300">
+                    {index === 0 ? 'Webhook' : 'API'}
+                  </span>
+                </div>
+              ))}
+            </div>
 
-              <button
-                type="button"
-                onClick={() => registerSale()}
-                className="w-full py-5 rounded-2xl bg-emerald-400 text-black font-black uppercase tracking-[0.22em] text-[10px] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_20px_60px_rgba(52,211,153,0.18)]"
-              >
-                <Bell className="w-4 h-4" />
-                Registrar venda e notificar
-              </button>
-
+            <div className="rounded-[2rem] border border-amber-300/10 bg-amber-300/5 p-5">
+              <p className="text-[9px] font-black uppercase tracking-[0.25em] text-amber-200">Status operacional</p>
+              <p className="mt-2 text-xs text-amber-100/70 leading-relaxed">
+                Aguardando conexão de checkout. Quando a plataforma enviar um evento aprovado, o painel atualiza o faturamento automaticamente.
+              </p>
             </div>
           </section>
 
@@ -460,7 +377,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                 </div>
                 <div className="text-right">
                   <p className="text-[9px] text-zinc-500 font-bold uppercase">Modo</p>
-                  <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest">Simulado</p>
+                  <p className="text-[10px] text-emerald-300 font-black uppercase tracking-widest">Checkout</p>
                 </div>
               </div>
 
@@ -487,10 +404,10 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                   <h3 className="text-sm font-black text-white uppercase tracking-widest">Integracoes futuras</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  {platformOptions.slice(1).map((option) => (
+                  {platformOptions.map((option) => (
                     <div key={option} className="rounded-2xl border border-white/5 bg-white/[0.03] px-4 py-3">
                       <p className="text-[10px] font-black text-white">{option}</p>
-                      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Simulado</p>
+                      <p className="text-[8px] font-bold uppercase tracking-widest text-zinc-600">Conectar</p>
                     </div>
                   ))}
                 </div>
@@ -512,7 +429,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
                   </button>
                 </div>
                 <pre className="min-h-40 whitespace-pre-wrap rounded-2xl bg-black/40 border border-white/5 p-4 text-[10px] leading-relaxed text-zinc-400 font-sans">
-                  {lastNotification || 'Registre uma venda para gerar a notificacao automaticamente.'}
+                  {lastNotification || 'Aguardando evento aprovado enviado por uma plataforma de checkout.'}
                 </pre>
               </div>
             </div>
