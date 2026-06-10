@@ -44,7 +44,7 @@ interface RevenueDashboardProps {
   onNext: () => void;
 }
 
-const platformOptions = ['Hotmart', 'Kiwify', 'Eduzz', 'Monetizze', 'Stripe', 'Mercado Pago'];
+const platformOptions = ['Cakto', 'Hotmart', 'Kiwify', 'Eduzz', 'Monetizze', 'Stripe', 'Mercado Pago'];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
@@ -77,13 +77,14 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
   const [productDescription, setProductDescription] = useState(currentProduct?.description || currentProjectDesc || '');
   const [productType, setProductType] = useState(currentProduct?.type || 'produto');
   const [amount, setAmount] = useState(currentProduct?.priceLabel || '');
-  const [platform] = useState('Hotmart');
+  const [platform] = useState('Cakto');
   const [notice, setNotice] = useState('');
   const [lastNotification, setLastNotification] = useState('');
   const [liveSecret, setLiveSecret] = useState('venda');
   const [liveToast, setLiveToast] = useState<SaleRecord | null>(null);
   const secretBufferRef = useRef('');
   const lastSecretTriggerRef = useRef(0);
+  const noticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(REVENUE_STORAGE_KEY);
@@ -97,7 +98,20 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
 
     const storedSecret = localStorage.getItem(LIVE_SECRET_STORAGE_KEY);
     if (storedSecret) setLiveSecret(storedSecret);
+
+    return () => {
+      if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    };
   }, []);
+
+  const showTemporaryNotice = (message: string) => {
+    setNotice(message);
+    if (noticeTimerRef.current) window.clearTimeout(noticeTimerRef.current);
+    noticeTimerRef.current = window.setTimeout(() => {
+      setNotice('');
+      noticeTimerRef.current = null;
+    }, 4500);
+  };
 
   useEffect(() => {
     if (!currentProduct) return;
@@ -176,12 +190,12 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
     const saleAmount = parseCurrencyInput(amount);
 
     if (!productName.trim()) {
-      setNotice('Informe ou gere o nome do produto antes de registrar.');
+      showTemporaryNotice('Produto ainda nao sincronizado com o checkout.');
       return;
     }
 
     if (saleAmount <= 0) {
-      setNotice('Coloque um valor maior que zero para registrar a venda.');
+      showTemporaryNotice('Valor base pendente. Defina o valor da oferta no fluxo.');
       return;
     }
 
@@ -198,7 +212,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
 
     const nextSales = [sale, ...sales];
     persistSales(nextSales);
-    setNotice(`Evento de checkout sincronizado: ${formatCurrency(saleAmount)} em ${sale.productName}.`);
+    showTemporaryNotice(`Evento de checkout sincronizado: ${formatCurrency(saleAmount)} em ${sale.productName}.`);
     await emitSaleNotification(sale);
   };
 
@@ -232,7 +246,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
   const copyLastNotification = async () => {
     if (!lastNotification) return;
     await navigator.clipboard?.writeText(lastNotification);
-    setNotice('Notificacao copiada.');
+    showTemporaryNotice('Notificacao copiada.');
   };
 
   const deleteSale = (saleId: string) => {
