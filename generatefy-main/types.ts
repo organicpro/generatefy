@@ -13,7 +13,7 @@ export enum GenerationStatus {
   ERROR = 'ERROR'
 }
 
-export type AppView = 'chat' | 'builder' | 'niche-mining' | 'niches' | 'opportunities' | 'intelligence' | 'prospector' | 'projects' | 'outreach' | 'settings' | 'post-studio' | 'templates' | 'academy' | 'product-creator' | 'revenue' | 'bulk-sender' | 'finder';
+export type AppView = 'chat' | 'builder' | 'niche-mining' | 'niches' | 'opportunities' | 'intelligence' | 'prospector' | 'projects' | 'outreach' | 'settings' | 'post-studio' | 'templates' | 'academy' | 'product-creator' | 'pricing' | 'revenue' | 'bulk-sender' | 'finder';
 
 export interface UserIdentity {
   name: string;

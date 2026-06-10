@@ -24,6 +24,9 @@ type RevenueProduct = {
   name: string;
   type: string;
   description: string;
+  price?: number;
+  priceLabel?: string;
+  pricingNotes?: string;
 };
 
 type SaleRecord = {
@@ -76,7 +79,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
   const [productName, setProductName] = useState(currentProduct?.name || '');
   const [productDescription, setProductDescription] = useState(currentProduct?.description || currentProjectDesc || '');
   const [productType, setProductType] = useState(currentProduct?.type || 'produto');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(currentProduct?.priceLabel || '');
   const [platform, setPlatform] = useState('Manual');
   const [customerName, setCustomerName] = useState('');
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
@@ -106,6 +109,7 @@ export default function RevenueDashboard({ currentProduct, currentProjectDesc, i
     setProductName(currentProduct.name || '');
     setProductDescription(currentProduct.description || currentProjectDesc || '');
     setProductType(currentProduct.type || 'produto');
+    if (currentProduct.priceLabel) setAmount(currentProduct.priceLabel);
   }, [currentProduct, currentProjectDesc]);
 
   const persistSales = (nextSales: SaleRecord[]) => {

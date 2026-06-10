@@ -24,6 +24,7 @@ import Auth from './components/Auth';
 import GroupFinder from './components/GroupFinder';
 import NicheMining, { MinedNicheSelection } from './components/NicheMining';
 import RevenueDashboard from './components/RevenueDashboard';
+import ProductPricing from './components/ProductPricing';
 import { db, auth, isFirebaseConfigured } from './lib/firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp, where, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
@@ -36,6 +37,15 @@ const TUTORIAL_KEY = 'ryze_tutorial_completed';
 const TOUR_COMPLETED_KEY = 'ryze_tour_v1_completed';
 const LOCAL_PROJECTS_KEY = 'ryze_saved_projects_v1';
 const IDENTITY_KEY = 'ryze_user_identity_v1';
+
+type CurrentProduct = {
+  name: string;
+  type: string;
+  description: string;
+  price?: number;
+  priceLabel?: string;
+  pricingNotes?: string;
+};
 
 const App: React.FC = () => {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
@@ -59,7 +69,7 @@ const App: React.FC = () => {
     name: '', specialty: 'Especialista Digital', experience: '5+ anos', apiKey: '' 
   });
   const [workflowStep, setWorkflowStep] = useState<number>(1); 
-  const [currentProduct, setCurrentProduct] = useState<{name: string, type: string, description: string} | null>(null);
+  const [currentProduct, setCurrentProduct] = useState<CurrentProduct | null>(null);
   const [minedNiche, setMinedNiche] = useState<MinedNicheSelection | null>(null);
   const lastIframeHtml = useRef('');
 
@@ -367,7 +377,7 @@ const App: React.FC = () => {
     const stepToView: Record<number, AppView> = {
       1: 'niche-mining',
       2: 'product-creator',
-      3: 'revenue',
+      3: 'pricing',
       4: 'outreach',
       5: 'finder',
       6: 'bulk-sender'
@@ -468,6 +478,14 @@ const App: React.FC = () => {
     }
   };
 
+  const getCurrentProductContext = () => {
+    if (!currentProduct) return lastDescription;
+    const priceContext = currentProduct.priceLabel
+      ? `\nValor definido: ${currentProduct.priceLabel}. ${currentProduct.pricingNotes || ''}`
+      : '';
+    return `${currentProduct.description}${priceContext}`;
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'chat': return <VoxenMoonChat 
@@ -564,26 +582,40 @@ const App: React.FC = () => {
         setStatus(GenerationStatus.IDLE);
         setError('');
         setWorkflowStep(3);
-        setCurrentView('revenue');
+        setCurrentView('pricing');
         setHistory(prev => [...prev, `Oferta configurada: ${name} (${type}).`]);
       }} />;
+      case 'pricing': return <ProductPricing
+        currentProduct={currentProduct}
+        onBackToProduct={() => {
+          setWorkflowStep(2);
+          setCurrentView('product-creator');
+        }}
+        onPriceDefined={(price, priceLabel, pricingNotes) => {
+          setCurrentProduct((product) => product ? { ...product, price, priceLabel, pricingNotes } : product);
+          setLastDescription((prev) => `${prev}\nValor definido: ${priceLabel}. ${pricingNotes}`);
+          setWorkflowStep(4);
+          setCurrentView('outreach');
+          setHistory(prev => [...prev, `Valor definido: ${priceLabel}.`]);
+        }}
+      />;
       case 'revenue': return <RevenueDashboard
         currentProduct={currentProduct}
-        currentProjectDesc={currentProduct?.description || lastDescription}
+        currentProjectDesc={getCurrentProductContext()}
         identity={identity}
         onNext={() => handleWorkflowNext(4)}
       />;
       case 'outreach': return <OutreachGenerator 
-        currentProjectDesc={currentProduct?.description || lastDescription} 
-        identity={identity} 
-        onNext={() => handleWorkflowNext(4)}
-      />;
-      case 'finder': return <GroupFinder 
-        niche={currentProduct?.description || lastDescription} 
+        currentProjectDesc={getCurrentProductContext()} 
         identity={identity} 
         onNext={() => handleWorkflowNext(5)}
       />;
-      case 'bulk-sender': return <BulkSender currentProjectDesc={currentProduct?.description || lastDescription} identity={identity} />;
+      case 'finder': return <GroupFinder 
+        niche={getCurrentProductContext()} 
+        identity={identity} 
+        onNext={() => handleWorkflowNext(6)}
+      />;
+      case 'bulk-sender': return <BulkSender currentProjectDesc={getCurrentProductContext()} identity={identity} />;
       case 'templates': return <Templates onSelect={handleTemplateSelect} />;
       case 'academy': return <Academy />;
       default: return <VoxenMoonChat onGenerate={handleGenerate} isGenerating={status === GenerationStatus.GENERATING} onNavigate={setCurrentView} onImportHtml={handleImportHtml} />;
@@ -595,10 +627,11 @@ const App: React.FC = () => {
       case 'niche-mining': setWorkflowStep(1); break;
       case 'product-creator': setWorkflowStep(2); break;
       case 'builder': setWorkflowStep(2); break;
-      case 'revenue': setWorkflowStep(3); break;
+      case 'pricing': setWorkflowStep(3); break;
       case 'outreach': setWorkflowStep(4); break;
       case 'finder': setWorkflowStep(5); break;
       case 'bulk-sender': setWorkflowStep(6); break;
+      case 'revenue': setWorkflowStep(0); break;
       default: break;
     }
   }, [currentView]);
